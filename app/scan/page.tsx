@@ -30,7 +30,7 @@ export default function ScanPage() {
       const res = await fetch("/api/analyze-wine", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: capturedImage }),
+        body: JSON.stringify({ imageBase64: capturedImage, lang: i18n.language.startsWith("en") ? "en" : "it" }),
       });
 
       const data = await res.json();

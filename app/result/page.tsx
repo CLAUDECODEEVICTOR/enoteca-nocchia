@@ -39,9 +39,9 @@ export default function ResultPage() {
     }
 
     // Fetch bottle image async (doesn't block page render)
-    const wineIt = parsed.it;
-    if (wineIt?.confidenza !== "nulla" && wineIt?.nome_vino) {
-      const q = [wineIt.nome_vino, wineIt.produttore, wineIt.annata].filter(Boolean).join(" ");
+    const wineData = parsed.it || parsed.en;
+    if (wineData?.confidenza !== "nulla" && wineData?.nome_vino) {
+      const q = [wineData.nome_vino, wineData.produttore, wineData.annata].filter(Boolean).join(" ");
       fetch(`/api/wine-image?q=${encodeURIComponent(q)}`)
         .then(res => res.json())
         .then(data => {
@@ -57,7 +57,7 @@ export default function ResultPage() {
   if (!bilingualWine) return null;
 
   const lang = (i18n.language === "en" ? "en" : "it") as "it" | "en";
-  const wine = bilingualWine[lang] || bilingualWine.it;
+  const wine = bilingualWine[lang] || bilingualWine.it || bilingualWine.en;
 
   // Schermata errore se confidenza nulla
   if (wine.confidenza === "nulla") {

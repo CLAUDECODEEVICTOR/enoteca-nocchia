@@ -57,7 +57,7 @@ export default function CameraStream({ onCapture }: CameraStreamProps) {
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
-    const maxDim = 800;
+    const maxDim = 600;
     const scale = Math.min(1, maxDim / Math.max(video.videoWidth, video.videoHeight));
     canvas.width = video.videoWidth * scale;
     canvas.height = video.videoHeight * scale;

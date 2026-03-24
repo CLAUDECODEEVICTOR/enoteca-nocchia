@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { anthropicClient, buildPrompt } from "@/lib/anthropic";
-import { BilingualWineAnalysis } from "@/lib/types";
 import { rateLimit } from "@/lib/rate-limit";
 
 const MAX_BASE64_LENGTH = 10_000_000; // ~7.5MB decoded
@@ -18,6 +17,9 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const imageBase64 = body?.imageBase64 as string | undefined;
+    const rawLang = body?.lang;
+    const lang = (String(rawLang || "").startsWith("en") ? "en" : "it") as "it" | "en";
+    console.log("[analyze-wine] rawLang:", rawLang, "→ lang:", lang);
 
     if (!imageBase64 || typeof imageBase64 !== "string") {
       return NextResponse.json(
@@ -34,11 +36,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const prompt = buildPrompt();
+    const prompt = buildPrompt(lang);
 
     const response = await anthropicClient.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 1600,
+      max_tokens: 700,
       messages: [
         {
           role: "user",
@@ -68,7 +70,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let wineData: BilingualWineAnalysis;
+    let wineData;
     try {
       wineData = JSON.parse(jsonMatch[0]);
     } catch {
@@ -78,14 +80,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (wineData.it.confidenza === "nulla") {
+    // Wrap in bilingual format: { it: data } or { en: data }
+    const result = { [lang]: wineData };
+
+    if (wineData.confidenza === "nulla") {
       return NextResponse.json(
-        { error: wineData.it.descrizione, data: wineData },
+        { error: wineData.descrizione, data: result },
         { status: 422 }
       );
     }
 
-    return NextResponse.json(wineData);
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Errore analisi vino:", error);
     return NextResponse.json(
