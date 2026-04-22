@@ -65,6 +65,16 @@ export default function HomePage() {
           {t("home.cta")}
         </button>
       </div>
+
+      {/* Archive link — discreet, staff only */}
+      <button
+        onClick={() => router.push("/archivio")}
+        className="fixed bottom-4 left-4 text-xs opacity-40 hover:opacity-80 transition-opacity"
+        style={{ color: "var(--color-muted)", paddingBottom: "env(safe-area-inset-bottom)" }}
+        aria-label="Archivio"
+      >
+        Archivio
+      </button>
     </div>
   );
 }

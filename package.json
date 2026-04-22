@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
+    "@neondatabase/serverless": "^1.1.0",
     "i18next": "^25.10.5",
     "i18next-resources-to-backend": "^1.2.1",
     "next": "16.2.1",

@@ -9,6 +9,28 @@ import LanguageToggle from "@/components/LanguageToggle";
 import { IconWineGlass } from "@/components/Icons";
 import "@/lib/i18n";
 
+// Fire-and-forget save to Neon DB. Never blocks UI or throws to caller.
+function saveScan(
+  wine: { nome_vino: string; produttore?: string; annata?: string; [k: string]: unknown },
+  bottleImage: string | null,
+  lang: string
+) {
+  try {
+    fetch("/api/save-scan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...wine,
+        bottleImage,
+        lang: lang.startsWith("en") ? "en" : "it",
+      }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    // Silent
+  }
+}
+
 export default function ResultPage() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -18,7 +40,7 @@ export default function ResultPage() {
   useEffect(() => {
     const stored = localStorage.getItem("lastWineAnalysis");
     if (!stored) {
-      router.push("/scan");
+      router.push("/");
       return;
     }
 
@@ -26,33 +48,55 @@ export default function ResultPage() {
     try {
       parsed = JSON.parse(stored);
     } catch {
-      router.push("/scan");
+      router.push("/");
       return;
     }
     setBilingualWine(parsed);
+
+    const wineData = parsed.it || parsed.en;
+    const validWine =
+      wineData?.confidenza !== "nulla" && !!wineData?.nome_vino;
+
+    // Avoid saving the same scan twice if user navigates back and forth
+    const savedKey = `scan_saved_${wineData?.nome_vino}_${wineData?.annata}`;
+    const alreadySaved = sessionStorage.getItem(savedKey) === "1";
 
     // Check cached image first
     const cachedImg = localStorage.getItem("wineBottleImage");
     if (cachedImg) {
       setBottleImage(cachedImg);
+      if (validWine && !alreadySaved) {
+        saveScan(wineData, cachedImg, i18n.language);
+        sessionStorage.setItem(savedKey, "1");
+      }
       return;
     }
 
     // Fetch bottle image async (doesn't block page render)
-    const wineData = parsed.it || parsed.en;
-    if (wineData?.confidenza !== "nulla" && wineData?.nome_vino) {
+    if (validWine) {
       const q = [wineData.nome_vino, wineData.produttore, wineData.annata].filter(Boolean).join(" ");
       fetch(`/api/wine-image?q=${encodeURIComponent(q)}`)
         .then(res => res.json())
         .then(data => {
-          if (data.imageUrl) {
-            localStorage.setItem("wineBottleImage", data.imageUrl);
-            setBottleImage(data.imageUrl);
+          const img = data.imageUrl || null;
+          if (img) {
+            localStorage.setItem("wineBottleImage", img);
+            setBottleImage(img);
+          }
+          if (!alreadySaved) {
+            saveScan(wineData, img, i18n.language);
+            sessionStorage.setItem(savedKey, "1");
           }
         })
-        .catch(() => {}); // Silently fail — page works without image
+        .catch(() => {
+          // Save anyway without image
+          if (!alreadySaved) {
+            saveScan(wineData, null, i18n.language);
+            sessionStorage.setItem(savedKey, "1");
+          }
+        });
     }
-  }, [router]);
+  }, [router, i18n.language]);
 
   if (!bilingualWine) return null;
 
@@ -94,7 +138,7 @@ export default function ResultPage() {
         </p>
 
         <button
-          onClick={() => router.push("/scan")}
+          onClick={() => router.push("/")}
           className="mt-4 px-8 py-4 rounded-xl text-base md:text-lg font-medium transition-all duration-300 hover:scale-105 active:scale-95 animate-fade-in-3"
           style={{
             background: "var(--color-bordeaux)",
@@ -138,7 +182,7 @@ export default function ResultPage() {
           {/* Bottone altra bottiglia */}
           <div className="mt-8 mb-8">
             <button
-              onClick={() => router.push("/scan")}
+              onClick={() => router.push("/")}
               className="w-full min-h-[52px] py-4 rounded-xl text-base md:text-lg font-medium transition-all duration-300 hover:scale-[1.02] active:scale-95 active:brightness-90"
               style={{
                 background: "var(--color-bordeaux)",

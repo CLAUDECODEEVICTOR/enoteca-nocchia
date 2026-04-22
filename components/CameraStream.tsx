@@ -102,29 +102,17 @@ export default function CameraStream({ onCapture }: CameraStreamProps) {
         className="absolute inset-0 w-full h-full object-cover"
       />
 
-      {/* Overlay con cornice guida */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div
-            className="w-[75vw] max-w-[400px] h-[50vh] max-h-[500px] rounded-2xl animate-pulse"
-            style={{
-              border: "2px dashed var(--color-gold)",
-              boxShadow: "0 0 0 9999px rgba(0,0,0,0.4)",
-            }}
-          />
-        </div>
-        {/* Testo istruzione — posizionato relativamente al bottone */}
-        <div
-          className="absolute left-0 right-0 text-center"
-          style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 120px)" }}
+      {/* Testo istruzione */}
+      <div
+        className="absolute left-0 right-0 text-center pointer-events-none"
+        style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 120px)" }}
+      >
+        <p
+          className="text-base md:text-lg font-medium drop-shadow-lg"
+          style={{ color: "#FFFFFF" }}
         >
-          <p
-            className="text-base md:text-lg font-medium"
-            style={{ color: "var(--color-text)" }}
-          >
-            {t("scan.instruction")}
-          </p>
-        </div>
+          {t("scan.instruction")}
+        </p>
       </div>
 
       {/* Pulsante scatto */}
