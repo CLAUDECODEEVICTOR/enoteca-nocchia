@@ -22,9 +22,40 @@ export default function ScanPage() {
     setCapturedImage(null);
   };
 
+  // Downscale a base64 JPEG to a max long-side dimension, return new base64 (no data: prefix).
+  // Used to keep feedback thumbnails small enough to store in DB.
+  const downscaleImage = async (base64: string, maxSize = 600, quality = 0.72): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const w = Math.round(img.width * ratio);
+        const h = Math.round(img.height * ratio);
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(base64);
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL("image/jpeg", quality);
+        resolve(dataUrl.replace(/^data:image\/\w+;base64,/, ""));
+      };
+      img.onerror = () => resolve(base64);
+      img.src = `data:image/jpeg;base64,${base64}`;
+    });
+  };
+
   const handleAnalyze = async () => {
     if (!capturedImage) return;
     setIsAnalyzing(true);
+
+    // Persist a thumbnail in sessionStorage so the feedback panel on /result can attach it.
+    try {
+      const thumb = await downscaleImage(capturedImage, 600, 0.72);
+      sessionStorage.setItem("lastScanThumbnail", thumb);
+    } catch {
+      // Non-blocking: feedback will just have no photo if this fails
+    }
 
     try {
       const res = await fetch("/api/analyze-wine", {

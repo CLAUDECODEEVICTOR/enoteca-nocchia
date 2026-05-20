@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { BilingualWineAnalysis } from "@/lib/types";
 import WineCard from "@/components/WineCard";
 import LanguageToggle from "@/components/LanguageToggle";
+import FeedbackPanel from "@/components/FeedbackPanel";
 import { IconWineGlass } from "@/components/Icons";
 import "@/lib/i18n";
 
@@ -36,6 +37,13 @@ export default function ResultPage() {
   const router = useRouter();
   const [bilingualWine, setBilingualWine] = useState<BilingualWineAnalysis | null>(null);
   const [bottleImage, setBottleImage] = useState<string | null>(null);
+  const [scanThumbnail, setScanThumbnail] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Read the original scan photo (thumbnail) stored by /scan
+    const thumb = sessionStorage.getItem("lastScanThumbnail");
+    if (thumb) setScanThumbnail(thumb);
+  }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem("lastWineAnalysis");
@@ -178,6 +186,17 @@ export default function ResultPage() {
         <div className="max-w-2xl mx-auto">
           {/* Wine Card */}
           <WineCard wine={wine} />
+
+          {/* Feedback panel — only shown when we actually have a wine identification.
+              The confidenza === "nulla" branch returns earlier, so here it's never "nulla". */}
+          {wine.nome_vino && (
+            <FeedbackPanel
+              wine={wine}
+              fullResponse={bilingualWine}
+              originalPhoto={scanThumbnail}
+              lang={lang}
+            />
+          )}
 
           {/* Bottone altra bottiglia */}
           <div className="mt-8 mb-8">

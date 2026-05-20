@@ -14,6 +14,9 @@ export interface WineAnalysis {
   abbinamenti: string[];
   descrizione: string;
   confidenza: "alta" | "media" | "bassa" | "nulla";
+  // Verbatim transcription of the label text — produced by the analyze-wine prompt
+  // step 1. Used for feedback/debugging only; not rendered on WineCard.
+  testo_etichetta?: string;
 }
 
 export interface BilingualWineAnalysis {

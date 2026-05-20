@@ -50,3 +50,31 @@ export function ensureSchema(): Promise<void> {
   }
   return schemaReady;
 }
+
+// Feedback table — separate from archive, captures every proprietor verdict on scan accuracy
+let feedbackSchemaReady: Promise<void> | null = null;
+export function ensureFeedbackSchema(): Promise<void> {
+  if (!feedbackSchemaReady) {
+    feedbackSchemaReady = (async () => {
+      await sql`
+        CREATE TABLE IF NOT EXISTS scan_feedback (
+          id TEXT PRIMARY KEY,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          is_correct BOOLEAN NOT NULL,
+          wine_name TEXT,
+          producer TEXT,
+          vintage TEXT,
+          testo_etichetta TEXT,
+          ai_response JSONB,
+          original_photo TEXT,
+          user_correction TEXT,
+          notes TEXT,
+          lang TEXT
+        );
+      `;
+      await sql`CREATE INDEX IF NOT EXISTS idx_feedback_created ON scan_feedback (created_at DESC);`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_feedback_correct ON scan_feedback (is_correct);`;
+    })();
+  }
+  return feedbackSchemaReady;
+}
