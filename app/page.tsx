@@ -75,6 +75,16 @@ export default function HomePage() {
       >
         Archivio
       </button>
+
+      {/* Feedback admin link — discreet, staff only */}
+      <button
+        onClick={() => router.push("/feedback")}
+        className="fixed bottom-4 right-4 text-xs opacity-40 hover:opacity-80 transition-opacity"
+        style={{ color: "var(--color-muted)", paddingBottom: "env(safe-area-inset-bottom)" }}
+        aria-label="Feedback"
+      >
+        Feedback
+      </button>
     </div>
   );
 }
