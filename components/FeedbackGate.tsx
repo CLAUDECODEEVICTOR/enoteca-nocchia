@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-const ADMIN_PIN = "1234";
+const ADMIN_PIN = "2222";
 const SESSION_KEY = "nocchia_feedback_ok";
 
 export default function FeedbackGate({ children }: { children: React.ReactNode }) {
