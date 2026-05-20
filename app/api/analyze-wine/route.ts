@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type Anthropic from "@anthropic-ai/sdk";
 import { anthropicClient, buildPrompt } from "@/lib/anthropic";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -28,7 +29,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate base64 size
     if (imageBase64.length > MAX_BASE64_LENGTH) {
       return NextResponse.json(
         { error: "Immagine troppo grande (max 7MB)" },
@@ -39,8 +39,15 @@ export async function POST(req: NextRequest) {
     const prompt = buildPrompt(lang);
 
     const response = await anthropicClient.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 700,
+      model: "claude-sonnet-4-6",
+      max_tokens: 1500,
+      tools: [
+        {
+          type: "web_search_20250305",
+          name: "web_search",
+          max_uses: 2,
+        },
+      ],
       messages: [
         {
           role: "user",
@@ -59,11 +66,18 @@ export async function POST(req: NextRequest) {
       ],
     });
 
-    const text =
-      response.content[0].type === "text" ? response.content[0].text : "";
+    // Response may contain multiple blocks: text, server_tool_use, web_search_tool_result, text.
+    // We want the LAST text block, which carries the final JSON.
+    const textBlocks = response.content.filter(
+      (b): b is Anthropic.TextBlock => b.type === "text"
+    );
+    const finalText = textBlocks.length > 0 ? textBlocks[textBlocks.length - 1].text : "";
 
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    console.log("[analyze-wine] stop_reason:", response.stop_reason, "blocks:", response.content.map(b => b.type).join(","));
+
+    const jsonMatch = finalText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
+      console.error("[analyze-wine] no JSON in final text:", finalText.slice(0, 500));
       return NextResponse.json(
         { error: "Impossibile analizzare l'immagine" },
         { status: 422 }
@@ -73,14 +87,14 @@ export async function POST(req: NextRequest) {
     let wineData;
     try {
       wineData = JSON.parse(jsonMatch[0]);
-    } catch {
+    } catch (e) {
+      console.error("[analyze-wine] JSON parse error:", e);
       return NextResponse.json(
         { error: "Risposta AI non valida" },
         { status: 422 }
       );
     }
 
-    // Wrap in bilingual format: { it: data } or { en: data }
     const result = { [lang]: wineData };
 
     if (wineData.confidenza === "nulla") {

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 // Admin PIN — change here to any 4+ digit code you prefer
-const ADMIN_PIN = "1905";
+const ADMIN_PIN = "2222";
 const SESSION_KEY = "nocchia_admin_ok";
 
 export default function ArchiveGate({ children }: { children: React.ReactNode }) {
