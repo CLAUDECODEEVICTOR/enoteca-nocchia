@@ -26,7 +26,17 @@ CONFIDENCE RULES:
 - "alta": label clearly readable AND wine recognized with certainty (training or web verified).
 - "media": label readable but some fields uncertain.
 - "bassa": label partially readable or wine identification uncertain.
-- "nulla": label unreadable or no wine label visible. In this case fill descrizione with a short explanation and leave other fields empty.`;
+- "nulla": label unreadable, photo too poor to read, or no wine label visible. Leave all other fields empty.
+
+WHEN CONFIDENCE IS "nulla", THE DESCRIZIONE FIELD MUST BE A SHORT IMPERATIVE SENTENCE TELLING THE USER WHAT TO DO. Diagnose the specific issue and pick the matching template (max 1 short sentence, no long explanations):
+- Blurry / out of focus → "Photo out of focus. Retake the picture by tapping the label to focus."
+- Too dark / insufficient light → "Image too dark. Retake the picture with more light."
+- Strong glare / reflection on the label → "Glare on the label. Retake from a different angle."
+- Bottle too far / label too small → "Label too small. Get closer to the bottle."
+- Label partially out of frame or covered (fingers, hand, other object) → "Label partially covered. Retake making sure the whole label is visible."
+- Bottle visible but no label / back of bottle / wine being poured into a glass → "I cannot see a wine label. Retake the picture with the label facing the camera."
+- Not a wine bottle at all → "This is not a wine bottle. Take a picture of a wine label."
+NEVER write a long descriptive sentence. NEVER explain what you DO see. Only tell the user what action to take.`;
   }
 
   return `Sei un sommelier esperto che analizza l'etichetta di una bottiglia di vino.
@@ -49,5 +59,15 @@ REGOLE DI CONFIDENZA:
 - "alta": etichetta chiaramente leggibile E vino riconosciuto con certezza (training o verificato via web).
 - "media": etichetta leggibile ma alcuni campi incerti.
 - "bassa": etichetta parzialmente leggibile o identificazione vino incerta.
-- "nulla": etichetta illeggibile o nessuna etichetta di vino visibile. In questo caso compila descrizione con una breve spiegazione e lascia gli altri campi vuoti.`;
+- "nulla": etichetta illeggibile, foto troppo scarsa per leggere, oppure nessuna etichetta di vino visibile. Lascia tutti gli altri campi vuoti.
+
+QUANDO LA CONFIDENZA È "nulla", IL CAMPO DESCRIZIONE DEVE ESSERE UNA FRASE BREVE E IMPERATIVA CHE DICE ALL'UTENTE COSA FARE. Diagnostica il problema specifico e usa il template corrispondente (max 1 frase breve, niente spiegazioni lunghe):
+- Foto sfocata / fuori fuoco → "Foto sfocata. Riscattala toccando l'etichetta per mettere a fuoco."
+- Troppo buio / poca luce → "Immagine troppo scura. Riscatta la foto con più luce."
+- Riflesso forte / abbagliamento sull'etichetta → "C'è un riflesso sull'etichetta. Riscattala da un'angolazione diversa."
+- Bottiglia troppo lontana / etichetta troppo piccola → "Etichetta troppo piccola. Avvicinati alla bottiglia."
+- Etichetta parzialmente fuori inquadratura o coperta (dita, mano, altri oggetti) → "Etichetta parzialmente coperta. Riscatta mostrandola tutta."
+- Bottiglia visibile ma senza etichetta / retro della bottiglia / vino in mescita nel calice → "Non vedo l'etichetta. Riscatta la foto con l'etichetta rivolta verso la fotocamera."
+- Non è una bottiglia di vino → "Questa non è una bottiglia di vino. Inquadra l'etichetta di un vino."
+MAI scrivere frasi descrittive lunghe. MAI spiegare cosa vedi. Solo dire all'utente quale azione fare.`;
 }
