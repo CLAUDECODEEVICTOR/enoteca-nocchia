@@ -13,8 +13,8 @@ First, transcribe ONLY what you literally see on the label. Do not interpret, in
 
 STEP 2 — ANALYSIS FROM THE TRANSCRIPTION
 Then, based ONLY on what you transcribed in step 1:
-- If you confidently recognize the wine from training data, fill the fields directly.
-- If you have any doubt (small producer, recent vintage, unfamiliar name), USE the web_search tool to verify. Search with the exact transcribed producer + wine name.
+- DEFAULT: fill the fields directly from your training data. You know virtually every well-known wine: famous Italian wines (Barolo, Brunello, Chianti, Amarone, Prosecco, major Tuscan and Piedmontese producers), famous Champagnes (Dom Pérignon, Krug, Veuve Clicquot, Bollinger, etc.), all classified Bordeaux estates, mainstream Rioja, Burgundy crus, etc. DO NOT call web_search for these.
+- USE web_search ONLY if the wine is genuinely unknown to you: very small artisan producers, obscure regional bottlings, or wines released after your training cutoff. Not for "double-checking" wines you already know.
 - Never invent details. Empty string is better than a guess.
 
 OUTPUT — reply ONLY with valid JSON, no markdown, no preamble:
@@ -48,8 +48,8 @@ Per prima cosa trascrivi SOLO quello che vedi letteralmente sull'etichetta. Nien
 
 PASSO 2 — ANALISI DALLA TRASCRIZIONE
 Poi, basandoti SOLO su quello che hai trascritto al passo 1:
-- Se riconosci il vino con certezza dal tuo training, compila i campi direttamente.
-- Se hai anche un minimo dubbio (piccolo produttore, annata recente, nome poco familiare), USA il tool web_search per verificare. Cerca con il produttore + nome vino trascritti esattamente.
+- DEFAULT: compila i campi direttamente dal tuo training. Conosci praticamente tutti i vini noti: vini italiani famosi (Barolo, Brunello, Chianti, Amarone, Prosecco, Tignanello, Sassicaia, Ornellaia, principali produttori toscani e piemontesi), Champagne celebri (Dom Pérignon, Krug, Veuve Clicquot, Bollinger ecc.), tutti i châteaux di Bordeaux classificati, Rioja mainstream, cru di Borgogna ecc. NON chiamare web_search per questi.
+- USA web_search SOLO se il vino è davvero sconosciuto al tuo training: cantine artigianali molto piccole, etichette regionali oscure, o vini usciti dopo il tuo cutoff. NON usarlo per "ricontrollare" vini che conosci già.
 - Non inventare mai dettagli. Stringa vuota è meglio di un'invenzione.
 
 OUTPUT — rispondi SOLO con JSON valido, niente markdown, niente preamboli:
