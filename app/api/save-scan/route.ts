@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql, ensureSchema, wineKey } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { requireScope } from "@/lib/auth";
 
 interface ScanPayload {
   nome_vino: string;
@@ -23,6 +24,9 @@ interface ScanPayload {
 
 export async function POST(req: NextRequest) {
   try {
+    const denied = requireScope(req, "app");
+    if (denied) return denied;
+
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
     if (!rateLimit(ip, 30)) {
       return NextResponse.json({ error: "Troppe richieste" }, { status: 429 });

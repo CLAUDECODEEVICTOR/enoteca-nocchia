@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { requireScope } from "@/lib/auth";
 
 function isValidImageUrl(url: string): boolean {
   try {
@@ -58,6 +59,9 @@ async function searchBingImages(query: string, preferPng = false): Promise<strin
 }
 
 export async function GET(req: NextRequest) {
+  const denied = requireScope(req, "app");
+  if (denied) return denied;
+
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
   if (!rateLimit(ip, 30)) {
     return NextResponse.json({ error: "Troppe richieste" }, { status: 429 });

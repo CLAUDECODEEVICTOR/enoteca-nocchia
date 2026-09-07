@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql, ensureFeedbackSchema } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
+import { requireScope } from "@/lib/auth";
 
 interface FeedbackPayload {
   isCorrect: boolean;
@@ -20,6 +21,9 @@ const MAX_PHOTO_LENGTH = 300_000;
 
 export async function POST(req: NextRequest) {
   try {
+    const denied = requireScope(req, "app");
+    if (denied) return denied;
+
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
     if (!rateLimit(ip, 10)) {
       return NextResponse.json({ error: "Troppe richieste" }, { status: 429 });

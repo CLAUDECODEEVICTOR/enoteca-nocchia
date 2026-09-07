@@ -57,7 +57,11 @@ export default function CameraStream({ onCapture }: CameraStreamProps) {
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
-    const maxDim = 600;
+    // Label text is the whole point of the capture: 1400px on the long side at
+    // q=0.85 keeps small print legible for Claude Vision, and still lands well
+    // under the API payload cap. Anything smaller loses the fine print on the
+    // label, which is exactly what the analysis depends on.
+    const maxDim = 1400;
     const scale = Math.min(1, maxDim / Math.max(video.videoWidth, video.videoHeight));
     canvas.width = video.videoWidth * scale;
     canvas.height = video.videoHeight * scale;
@@ -66,7 +70,7 @@ export default function CameraStream({ onCapture }: CameraStreamProps) {
     if (!ctx) return;
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const base64 = canvas.toDataURL("image/jpeg", 0.6).split(",")[1];
+    const base64 = canvas.toDataURL("image/jpeg", 0.85).split(",")[1];
     onCapture(base64);
   }, [onCapture]);
 

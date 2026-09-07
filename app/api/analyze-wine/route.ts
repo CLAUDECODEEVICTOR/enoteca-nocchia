@@ -2,11 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import type Anthropic from "@anthropic-ai/sdk";
 import { anthropicClient, buildPrompt } from "@/lib/anthropic";
 import { rateLimit } from "@/lib/rate-limit";
+import { requireScope } from "@/lib/auth";
 
 const MAX_BASE64_LENGTH = 10_000_000; // ~7.5MB decoded
 
 export async function POST(req: NextRequest) {
   try {
+    // Unlocked customers only — this is the endpoint that spends Claude credits.
+    const denied = requireScope(req, "app");
+    if (denied) return denied;
+
     // Rate limit: max 15 requests per minute per IP
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
     if (!rateLimit(ip, 15)) {

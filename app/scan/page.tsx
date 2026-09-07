@@ -57,15 +57,10 @@ export default function ScanPage() {
       // Non-blocking: feedback will just have no photo if this fails
     }
 
-    // Compress the photo before uploading — Claude Sonnet 4.6 downscales internally to
-    // ~1568px anyway, so sending raw 4–7MB captures wastes upload time. 1400px @ q=0.85
-    // keeps label text crisp while cutting payload ~80%.
-    let uploadImage = capturedImage;
-    try {
-      uploadImage = await downscaleImage(capturedImage, 1400, 0.85);
-    } catch {
-      // Fall back to original if downscale fails
-    }
+    // CameraStream already captures at 1400px / q=0.85, the size Claude Vision
+    // works with, so the photo goes up as-is. Re-encoding it here would only
+    // throw away label detail a second time.
+    const uploadImage = capturedImage;
 
     try {
       const res = await fetch("/api/analyze-wine", {

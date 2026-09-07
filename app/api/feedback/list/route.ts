@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql, ensureFeedbackSchema } from "@/lib/db";
+import { requireScope } from "@/lib/auth";
 
-// GET — list all feedback ordered by most recent. No server-side auth: the page
-// gating is client-side via FeedbackGate. This matches the existing archive pattern.
+// GET — list all feedback ordered by most recent. Staff only: the signed admin
+// cookie is checked here, not just on the page, because the raw rows carry the
+// photos taken in the shop and the owner's notes.
 export async function GET(req: NextRequest) {
   try {
+    const denied = requireScope(req, "admin");
+    if (denied) return denied;
+
     await ensureFeedbackSchema();
     const url = new URL(req.url);
     const filter = url.searchParams.get("filter"); // "wrong" | "correct" | undefined

@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql, ensureSchema } from "@/lib/db";
+import { requireScope } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(req: NextRequest) {
   try {
+    const denied = requireScope(req, "admin");
+    if (denied) return denied;
+
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+    if (!rateLimit(ip, 30)) {
+      return NextResponse.json({ error: "Troppe richieste" }, { status: 429 });
+    }
+
     await ensureSchema();
 
     const searchQuery = req.nextUrl.searchParams.get("q")?.trim().toLowerCase() || "";

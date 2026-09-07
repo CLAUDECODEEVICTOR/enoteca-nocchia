@@ -19,27 +19,37 @@ interface FeedbackItem {
 
 type Filter = "all" | "wrong" | "correct";
 
-export default function FeedbackAdminPage() {
+// Il contenuto vive dentro il gate: monta solo a PIN inserito, così la chiamata
+// a /api/feedback/list parte quando il cookie di sessione esiste già.
+function FeedbackContent() {
   const [items, setItems] = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
+    setError(null);
     const qs = filter === "all" ? "" : `?filter=${filter}`;
     fetch(`/api/feedback/list${qs}`)
-      .then((r) => r.json())
+      .then(async (r) => {
+        // Senza questo controllo un errore del server sembrerebbe un archivio vuoto.
+        if (!r.ok) throw new Error(r.status === 401 ? "Sessione scaduta. Ricarica la pagina e reinserisci il PIN." : "Errore di caricamento");
+        return r.json();
+      })
       .then((data) => setItems(data.items || []))
-      .catch(() => setItems([]))
+      .catch((e) => {
+        setItems([]);
+        setError(e instanceof Error ? e.message : "Errore di caricamento");
+      })
       .finally(() => setLoading(false));
   }, [filter]);
 
   const wrongCount = items.filter((i) => !i.is_correct).length;
 
   return (
-    <FeedbackGate>
-      <div className="min-h-dvh" style={{ background: "var(--color-bg)", color: "var(--color-text)" }}>
+    <div className="min-h-dvh" style={{ background: "var(--color-bg)", color: "var(--color-text)" }}>
         <div className="max-w-3xl mx-auto px-5 md:px-8 py-8">
           <header className="mb-6">
             <h1 className="text-3xl md:text-4xl font-bold mb-1" style={{ fontFamily: "var(--font-playfair)", color: "var(--color-gold)" }}>
@@ -67,7 +77,13 @@ export default function FeedbackAdminPage() {
             ))}
           </div>
 
-          {!loading && items.length === 0 && (
+          {error && (
+            <p className="text-center py-12" style={{ color: "#c0392b" }}>
+              {error}
+            </p>
+          )}
+
+          {!loading && !error && items.length === 0 && (
             <p className="text-center py-12" style={{ color: "var(--color-muted)" }}>
               Nessun feedback ancora.
             </p>
@@ -151,7 +167,14 @@ export default function FeedbackAdminPage() {
             })}
           </div>
         </div>
-      </div>
+    </div>
+  );
+}
+
+export default function FeedbackAdminPage() {
+  return (
+    <FeedbackGate>
+      <FeedbackContent />
     </FeedbackGate>
   );
 }
