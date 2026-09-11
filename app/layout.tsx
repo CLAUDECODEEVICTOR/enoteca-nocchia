@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, DM_Sans } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import PinGate from "@/components/PinGate";
 import "./globals.css";
 
@@ -62,6 +63,9 @@ export default function RootLayout({
           }
         `}} />
         <PinGate>{children}</PinGate>
+        {/* Fuori dal PinGate: così conta anche chi si ferma alla schermata del PIN.
+            Analytics di Vercel non usa cookie e non profila i singoli visitatori. */}
+        <Analytics />
       </body>
     </html>
   );
