@@ -104,6 +104,9 @@ export function ensureStockSchema(): Promise<void> {
           photo TEXT
         );
       `;
+      await sql`ALTER TABLE stock_items ADD COLUMN IF NOT EXISTS photo_back TEXT;`;
+      await sql`ALTER TABLE stock_items ADD COLUMN IF NOT EXISTS operatore TEXT;`;
+      await sql`ALTER TABLE stock_items ADD COLUMN IF NOT EXISTS modificato_da TEXT;`;
       await sql`CREATE INDEX IF NOT EXISTS idx_stock_created ON stock_items (created_at DESC);`;
       await sql`CREATE INDEX IF NOT EXISTS idx_stock_key ON stock_items (wine_key);`;
     })().catch((e) => {

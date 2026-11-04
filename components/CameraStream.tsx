@@ -6,9 +6,10 @@ import { IconCamera } from "./Icons";
 
 interface CameraStreamProps {
   onCapture: (base64: string) => void;
+  instruction?: string;
 }
 
-export default function CameraStream({ onCapture }: CameraStreamProps) {
+export default function CameraStream({ onCapture, instruction }: CameraStreamProps) {
   const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -115,7 +116,7 @@ export default function CameraStream({ onCapture }: CameraStreamProps) {
           className="text-base md:text-lg font-medium drop-shadow-lg"
           style={{ color: "#FFFFFF" }}
         >
-          {t("scan.instruction")}
+          {instruction ?? t("scan.instruction")}
         </p>
       </div>
 

@@ -4,8 +4,9 @@
 // closed tab must not lose a bottle. A shot leaves the queue only once saved.
 export interface QueuedShot {
   id: string;
-  imageBase64: string;
-  photoBase64: string;
+  frontBase64: string;
+  backBase64: string;
+  operatore: string;
 }
 
 function open(): Promise<IDBDatabase> {

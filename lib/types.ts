@@ -23,3 +23,7 @@ export interface BilingualWineAnalysis {
   it: WineAnalysis;
   en: WineAnalysis;
 }
+
+export const FORMATI = ["187 ml", "375 ml", "500 ml", "750 ml", "1,5 l", "3 l", "5 l", "6 l"];
+
+export const OPERATORI = ["Matteo", "Filippo", "Maurizio", "Edoardo"];

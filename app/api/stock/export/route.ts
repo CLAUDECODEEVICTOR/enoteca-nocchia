@@ -15,11 +15,11 @@ export async function GET(req: NextRequest) {
   if (denied) return denied;
   await ensureStockSchema();
   const rows = await sql`
-    SELECT nome_vino, produttore, annata, denominazione, gradazione, formato, quantita, prezzo, status, id
+    SELECT nome_vino, produttore, annata, denominazione, gradazione, formato, quantita, prezzo, status, operatore, id
     FROM stock_items ORDER BY LOWER(produttore), LOWER(nome_vino), annata`;
-  const head = ["Vino", "Produttore", "Annata", "Denominazione", "Gradazione", "Formato", "Quantità", "Prezzo", "Stato", "ID"];
+  const head = ["Vino", "Produttore", "Annata", "Denominazione", "Gradazione", "Formato", "Quantità", "Prezzo", "Stato", "Operatore", "ID"];
   const body = rows.map((r) =>
-    [r.nome_vino, r.produttore, r.annata, r.denominazione, r.gradazione, r.formato, r.quantita, r.prezzo, r.status, r.id]
+    [r.nome_vino, r.produttore, r.annata, r.denominazione, r.gradazione, r.formato, r.quantita, r.prezzo, r.status, r.operatore, r.id]
       .map(cell)
       .join(";")
   );

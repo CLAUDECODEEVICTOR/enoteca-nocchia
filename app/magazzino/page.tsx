@@ -5,10 +5,14 @@ import { useRouter } from "next/navigation";
 import ArchiveGate from "@/components/ArchiveGate";
 import CameraStream from "@/components/CameraStream";
 import { addShot, allShots, removeShot, type QueuedShot } from "@/lib/stock-queue";
+import { FORMATI, OPERATORI } from "@/lib/types";
 import "@/lib/i18n";
 
 interface StockItem {
   id: string;
+  created_at: string;
+  operatore: string | null;
+  modificato_da: string | null;
   status: "da_leggere" | "ok" | "da_controllare" | "errore";
   nome_vino: string;
   produttore: string;
@@ -21,8 +25,9 @@ interface StockItem {
   duplicate_of: string | null;
 }
 
-const FORMATI = ["187 ml", "375 ml", "500 ml", "750 ml", "1,5 l", "3 l", "5 l", "6 l"];
 const PARALLEL = 3;
+// A tap this soon after the last one is a double tap, not the other side of the bottle.
+const MIN_GAP_MS = 700;
 
 function shrink(base64: string, maxSize: number, quality: number): Promise<string> {
   return new Promise((resolve) => {
@@ -49,11 +54,13 @@ const fieldStyle = {
 function Row({
   item,
   twin,
+  operatore,
   onChange,
   onRefresh,
 }: {
   item: StockItem;
   twin: StockItem | undefined;
+  operatore: string;
   onChange: (next: StockItem) => void;
   onRefresh: () => void;
 }) {
@@ -66,7 +73,7 @@ function Row({
     const res = await fetch("/api/stock", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(next),
+      body: JSON.stringify({ ...next, modificato_da: operatore }),
     }).catch(() => null);
     if (res?.ok) {
       setFailed(false);
@@ -79,7 +86,7 @@ function Row({
     await fetch("/api/stock", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: item.id, ...body }),
+      body: JSON.stringify({ id: item.id, modificato_da: operatore, ...body }),
     });
     onRefresh();
   };
@@ -122,14 +129,24 @@ function Row({
         border: warn ? "2px solid #c0392b" : "1px solid rgba(120,94,20,0.2)",
       }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={`/api/stock/photo?id=${item.id}`}
-        alt="Foto bottiglia"
-        className="w-24 md:w-40 h-36 md:h-56 rounded-lg object-cover shrink-0"
-        style={{ background: "rgba(120,94,20,0.08)" }}
-      />
+      <div className="flex flex-col gap-2 shrink-0">
+        {[["fronte", "Fronte della bottiglia"], ["retro", "Retro della bottiglia"]].map(([lato, alt]) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={lato}
+            src={`/api/stock/photo?id=${item.id}&lato=${lato}`}
+            alt={alt}
+            className="w-24 md:w-40 h-36 md:h-56 rounded-lg object-cover"
+            style={{ background: "rgba(120,94,20,0.08)" }}
+          />
+        ))}
+      </div>
       <div className="flex-1 min-w-0 flex flex-col gap-2">
+        <p className="text-xs" style={{ color: "var(--color-muted)" }}>
+          {item.operatore || "Senza nome"},{" "}
+          {new Date(item.created_at).toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+          {item.modificato_da ? `. Modificata da ${item.modificato_da}` : ""}
+        </p>
         {reading && <p className="text-sm" style={{ color: "var(--color-muted)" }}>Lettura in corso…</p>}
         {item.status === "errore" && (
           <button onClick={retry} className="min-h-[44px] rounded-lg text-sm font-medium text-white" style={{ background: "var(--color-bordeaux)" }}>
@@ -200,6 +217,11 @@ function Magazzino() {
   const [flash, setFlash] = useState(false);
   const [expired, setExpired] = useState(false);
   const [offline, setOffline] = useState(false);
+  const [operatore, setOperatore] = useState<string | null>(null);
+  const [filtro, setFiltro] = useState<string | null>(null);
+  const [hasFront, setHasFront] = useState(false);
+  const front = useRef<Promise<string> | null>(null);
+  const lastTap = useRef(0);
   const active = useRef(new Set<string>());
   // Each finished upload starts the next one, so the queue reaches itself through a ref.
   const pumpRef = useRef<() => void>(() => {});
@@ -216,6 +238,11 @@ function Magazzino() {
     for (const shot of shots) {
       if (active.current.size >= PARALLEL) return;
       if (active.current.has(shot.id)) continue;
+      // Left by the single-photo version: the server can't accept it, it would retry forever.
+      if (!shot.frontBase64) {
+        await removeShot(shot.id);
+        continue;
+      }
       active.current.add(shot.id);
       fetch("/api/stock", {
         method: "POST",
@@ -257,32 +284,89 @@ function Magazzino() {
 
   const capture = useCallback(
     async (base64: string) => {
+      const now = Date.now();
+      if (now - lastTap.current < MIN_GAP_MS) return;
+      lastTap.current = now;
       setFlash(true);
       setTimeout(() => setFlash(false), 150);
-      const photoBase64 = await shrink(base64, 800, 0.7);
-      await addShot({ id: crypto.randomUUID(), imageBase64: base64, photoBase64 });
+      // Sharp enough to be read again later for the full card, small enough for the database.
+      const shot = shrink(base64, 1200, 0.75);
+      if (!front.current) {
+        front.current = shot;
+        setHasFront(true);
+        return;
+      }
+      const frontBase64 = await front.current;
+      front.current = null;
+      setHasFront(false);
+      await addShot({ id: crypto.randomUUID(), frontBase64, backBase64: await shot, operatore: operatore ?? "" });
       pump();
     },
-    [pump]
+    [pump, operatore]
   );
 
-  const totale = items.reduce((n, i) => n + i.quantita, 0);
+  const cambiaOperatore = () => {
+    front.current = null;
+    setHasFront(false);
+    setOperatore(null);
+  };
+
+  if (!operatore) {
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-6" style={{ background: "var(--color-bg)" }}>
+        <h1 className="text-2xl font-medium text-center" style={{ color: "var(--color-text)" }}>Chi sta registrando?</h1>
+        <div className="w-full max-w-md grid grid-cols-2 gap-3">
+          {OPERATORI.map((nome) => (
+            <button
+              key={nome}
+              onClick={() => setOperatore(nome)}
+              className="min-h-[96px] rounded-xl text-lg font-medium text-white"
+              style={{ background: "var(--color-bordeaux)" }}
+            >
+              {nome}
+            </button>
+          ))}
+        </div>
+        <button onClick={() => router.push("/")} className="min-h-[44px] px-4" style={{ color: "var(--color-muted)" }}>Esci</button>
+      </main>
+    );
+  }
+
+  const visibili = filtro ? items.filter((i) => i.operatore === filtro) : items;
+  const totale = visibili.reduce((n, i) => n + i.quantita, 0);
   const daControllare = items.filter((i) => i.status === "da_controllare" || i.status === "errore" || i.duplicate_of).length;
 
   return (
     <>
-      <CameraStream onCapture={capture} />
+      <CameraStream
+        onCapture={capture}
+        instruction={hasFront ? "2 di 2: gira la bottiglia e fotografa il retro" : "1 di 2: fotografa il fronte"}
+      />
       {flash && <div className="fixed inset-0 z-30 bg-white/70 pointer-events-none" />}
 
       <div className="fixed top-3 left-3 right-3 z-30 flex items-center gap-2 text-white" style={{ paddingTop: "env(safe-area-inset-top)" }}>
         <button onClick={() => router.push("/")} className="min-h-[44px] px-4 rounded-lg" style={{ background: "rgba(0,0,0,0.55)" }}>Esci</button>
+        <button onClick={cambiaOperatore} aria-label={`Cambia persona, ora ${operatore}`} className="min-h-[44px] px-4 rounded-lg" style={{ background: "rgba(0,0,0,0.55)" }}>{operatore}</button>
         <div className="min-h-[44px] px-4 rounded-lg flex items-center text-sm" style={{ background: "rgba(0,0,0,0.55)" }}>
-          {items.length} vini, {totale} bottiglie{pending > 0 ? `, ${pending} in lettura` : ""}
+          {visibili.length} vini, {totale} bottiglie{pending > 0 ? `, ${pending} in lettura` : ""}
         </div>
         <button onClick={() => setShowList(true)} className="min-h-[44px] px-4 rounded-lg ml-auto font-medium" style={{ background: "var(--color-bordeaux)" }}>
           Lista{daControllare > 0 ? ` (${daControllare} da controllare)` : ""}
         </button>
       </div>
+
+      {hasFront && (
+        <button
+          onClick={() => {
+            front.current = null;
+            setHasFront(false);
+          }}
+          className="fixed z-30 left-3 min-h-[44px] px-4 rounded-lg text-white"
+          style={{ background: "rgba(0,0,0,0.55)", bottom: "calc(env(safe-area-inset-bottom, 0px) + 46px)" }}
+        >
+          Rifai il fronte
+        </button>
+      )}
 
       {(offline || expired) && (
         <div className="fixed top-20 left-3 right-3 z-30 rounded-lg p-3 text-sm text-white" style={{ background: "#c0392b" }}>
@@ -294,27 +378,45 @@ function Magazzino() {
 
       {showList && (
         <div className="fixed inset-0 z-40 overflow-y-auto" style={{ background: "var(--color-bg)", paddingTop: "env(safe-area-inset-top)" }}>
-          <div className="sticky top-0 z-10 flex items-center gap-2 p-3" style={{ background: "var(--color-bg)", borderBottom: "1px solid rgba(120,94,20,0.15)" }}>
+          <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 p-3" style={{ background: "var(--color-bg)", borderBottom: "1px solid rgba(120,94,20,0.15)" }}>
             <button onClick={() => setShowList(false)} className="min-h-[44px] px-4 rounded-lg font-medium text-white" style={{ background: "var(--color-bordeaux)" }}>
               Torna agli scatti
             </button>
-            <span className="text-sm" style={{ color: "var(--color-muted)" }}>{items.length} vini, {totale} bottiglie</span>
+            <span className="text-sm" style={{ color: "var(--color-muted)" }}>{visibili.length} vini, {totale} bottiglie</span>
             <a href="/api/stock/export" className="min-h-[44px] px-4 rounded-lg ml-auto flex items-center text-sm" style={{ border: "1px solid rgba(120,94,20,0.3)", color: "var(--color-text)" }}>
               Esporta CSV
             </a>
+            <div className="w-full flex flex-wrap gap-2">
+              {[null, ...OPERATORI].map((nome) => (
+                <button
+                  key={nome ?? "tutti"}
+                  onClick={() => setFiltro(nome)}
+                  aria-pressed={filtro === nome}
+                  className="min-h-[44px] px-3 rounded-lg text-sm"
+                  style={
+                    filtro === nome
+                      ? { background: "var(--color-bordeaux)", color: "#fff" }
+                      : { border: "1px solid rgba(120,94,20,0.3)", color: "var(--color-text)" }
+                  }
+                >
+                  {nome ?? "Tutti"} ({nome ? items.filter((i) => i.operatore === nome).length : items.length})
+                </button>
+              ))}
+            </div>
           </div>
           <ul className="max-w-4xl mx-auto p-3 grid gap-3">
-            {items.map((item) => (
+            {visibili.map((item) => (
               <Row
                 key={`${item.id}:${item.status}`}
                 item={item}
                 twin={items.find((t) => t.id === item.duplicate_of)}
+                operatore={operatore}
                 onChange={(next) => setItems((prev) => prev.map((p) => (p.id === next.id ? next : p)))}
                 onRefresh={refresh}
               />
             ))}
           </ul>
-          {items.length === 0 && (
+          {visibili.length === 0 && (
             <p className="text-center py-12" style={{ color: "var(--color-muted)" }}>Nessuna bottiglia registrata.</p>
           )}
         </div>
