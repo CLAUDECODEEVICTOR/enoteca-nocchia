@@ -76,6 +76,15 @@ export default function HomePage() {
         Archivio
       </button>
 
+      {/* Stock registration — staff only */}
+      <button
+        onClick={() => router.push("/magazzino")}
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 min-h-[44px] px-4 text-xs opacity-60 hover:opacity-100 transition-opacity"
+        style={{ color: "var(--color-muted)", paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        Magazzino
+      </button>
+
       {/* Feedback admin link — discreet, staff only */}
       <button
         onClick={() => router.push("/feedback")}

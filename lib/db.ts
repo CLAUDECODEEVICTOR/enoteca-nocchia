@@ -78,3 +78,38 @@ export function ensureFeedbackSchema(): Promise<void> {
   }
   return feedbackSchemaReady;
 }
+
+// Stock table — the shop's inventory, kept apart from customer scans in wine_scans.
+let stockSchemaReady: Promise<void> | null = null;
+export function ensureStockSchema(): Promise<void> {
+  if (!stockSchemaReady) {
+    stockSchemaReady = (async () => {
+      await sql`
+        CREATE TABLE IF NOT EXISTS stock_items (
+          id TEXT PRIMARY KEY,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          status TEXT NOT NULL DEFAULT 'da_leggere',
+          nome_vino TEXT NOT NULL DEFAULT '',
+          produttore TEXT NOT NULL DEFAULT '',
+          annata TEXT NOT NULL DEFAULT '',
+          denominazione TEXT NOT NULL DEFAULT '',
+          gradazione TEXT NOT NULL DEFAULT '',
+          formato TEXT NOT NULL DEFAULT '750 ml',
+          quantita INTEGER NOT NULL DEFAULT 1,
+          prezzo NUMERIC(10,2),
+          confidenza TEXT,
+          wine_key TEXT,
+          duplicate_of TEXT,
+          photo TEXT
+        );
+      `;
+      await sql`CREATE INDEX IF NOT EXISTS idx_stock_created ON stock_items (created_at DESC);`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_stock_key ON stock_items (wine_key);`;
+    })().catch((e) => {
+      stockSchemaReady = null;
+      throw e;
+    });
+  }
+  return stockSchemaReady;
+}
