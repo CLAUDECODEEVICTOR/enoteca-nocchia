@@ -75,8 +75,27 @@ export default function Gate({ scope, title, subtitle, showBackLink, children }:
     }
   };
 
-  if (checking) return null;
   if (unlocked) return <>{children}</>;
+
+  // While the cookie is being checked, say so: a blank page reads as a broken app.
+  if (checking) {
+    return (
+      <div
+        className="fixed inset-0 z-[100] flex flex-col items-center justify-center px-6"
+        style={{ background: "var(--color-bg)" }}
+      >
+        <h1
+          className="text-3xl md:text-4xl font-bold mb-2"
+          style={{ fontFamily: "var(--font-playfair)", color: "var(--color-gold)" }}
+        >
+          {title}
+        </h1>
+        <p className="text-sm text-center" style={{ color: "var(--color-muted)" }}>
+          Verifica accesso…
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div
