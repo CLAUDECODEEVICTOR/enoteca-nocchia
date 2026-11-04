@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
     // prefix across scans and can be served from cache instead of re-billed:
     // measured, a second scan within five minutes reads ~7.4k tokens from cache.
     const response = await anthropicClient.messages.create({
-      model: "claude-sonnet-5",
+      model: "claude-sonnet-5-5",
       max_tokens: 4000,
       system: [
         {
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
         },
       ],
       output_config: {
-        effort: "medium",
+        effort: "low",
         format: { type: "json_schema", schema: WINE_SCHEMA as unknown as Record<string, unknown> },
       },
       tools: [
