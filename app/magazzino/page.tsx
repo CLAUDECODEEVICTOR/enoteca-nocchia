@@ -144,6 +144,9 @@ function Row({
             key={lato}
             src={`/api/stock/photo?id=${item.id}&lato=${lato}`}
             alt={alt}
+            // Each photo is a database read: all of them at once take the database down.
+            loading="lazy"
+            decoding="async"
             onClick={() => window.open(`/api/stock/photo?id=${item.id}&lato=${lato}`, "_blank")}
             className="w-24 md:w-40 h-36 md:h-56 rounded-lg object-cover cursor-pointer"
             style={{ background: "rgba(120,94,20,0.08)" }}
