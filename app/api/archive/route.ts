@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     const searchQuery = req.nextUrl.searchParams.get("q")?.trim().toLowerCase() || "";
     const limit = Math.min(
       Number(req.nextUrl.searchParams.get("limit")) || 100,
-      500
+      1000
     );
 
     const rows = searchQuery

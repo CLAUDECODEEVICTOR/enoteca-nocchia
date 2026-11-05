@@ -61,6 +61,7 @@ export default function ScanPage() {
     // works with, so the photo goes up as-is. Re-encoding it here would only
     // throw away label detail a second time.
     const uploadImage = capturedImage;
+    const inizio = performance.now();
 
     try {
       const res = await fetch("/api/analyze-wine", {
@@ -70,6 +71,21 @@ export default function ScanPage() {
       });
 
       const data = await res.json();
+      if (res.ok) {
+        // The stopwatch must never get in the customer's way: no await, errors ignored.
+        const scheda = data.it || data.en;
+        fetch("/api/tempi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          keepalive: true,
+          body: JSON.stringify({
+            fonte: res.headers.get("x-fonte") || "completo",
+            ms: Math.round(performance.now() - inizio),
+            lang: data.it ? "it" : "en",
+            vino: [scheda?.nome_vino, scheda?.produttore, scheda?.annata].filter(Boolean).join(" "),
+          }),
+        }).catch(() => {});
+      }
       let bilingualData = null;
 
       const emptyWine = {

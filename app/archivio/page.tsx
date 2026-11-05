@@ -30,7 +30,7 @@ function ArchiveContent() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetch("/api/archive")
+    fetch("/api/archive?limit=1000")
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
@@ -106,6 +106,13 @@ function ArchiveContent() {
             <p className="text-xs md:text-sm" style={{ color: "var(--color-muted)" }}>
               {totals.total} vini distinti · {totals.totalScans} scansioni totali
             </p>
+            <button
+              onClick={() => router.push("/cronometro")}
+              className="min-h-[44px] text-sm underline"
+              style={{ color: "var(--color-muted)" }}
+            >
+              Cronometro scan
+            </button>
           </div>
         </div>
 

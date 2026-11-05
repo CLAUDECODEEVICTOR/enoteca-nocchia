@@ -23,9 +23,17 @@ interface StockItem {
   quantita: number;
   prezzo: string | null;
   duplicate_of: string | null;
+  dubbi: string | null;
+  categoria: string | null;
 }
 
 const PARALLEL = 3;
+const SEMPRE_CON_ANNATA = ["vino-rosso", "vino-bianco", "vino-rosato", "passito", "muffato", "recioto"];
+
+// Nothing read, or "N.V." on a kind of wine that normally has a vintage. Once a person
+// has been through the row, "N.V." is their answer.
+const annataDaVerificare = (i: StockItem) =>
+  !i.annata || (i.annata === "N.V." && !i.modificato_da && SEMPRE_CON_ANNATA.includes(i.categoria ?? ""));
 // A tap this soon after the last one is a double tap, not the other side of the bottle.
 const MIN_GAP_MS = 700;
 
@@ -136,7 +144,8 @@ function Row({
             key={lato}
             src={`/api/stock/photo?id=${item.id}&lato=${lato}`}
             alt={alt}
-            className="w-24 md:w-40 h-36 md:h-56 rounded-lg object-cover"
+            onClick={() => window.open(`/api/stock/photo?id=${item.id}&lato=${lato}`, "_blank")}
+            className="w-24 md:w-40 h-36 md:h-56 rounded-lg object-cover cursor-pointer"
             style={{ background: "rgba(120,94,20,0.08)" }}
           />
         ))}
@@ -154,7 +163,7 @@ function Row({
           </button>
         )}
         {item.status === "da_controllare" && (
-          <p className="text-sm font-medium" style={{ color: "#c0392b" }}>Da controllare: confronta con la foto</p>
+          <p className="text-sm font-medium" style={{ color: "#c0392b" }}>Da controllare: {item.dubbi || "confronta con la foto"}</p>
         )}
         {twin && (
           <div className="rounded-lg p-2 text-sm" style={{ background: "rgba(120,94,20,0.1)", color: "var(--color-text)" }}>
@@ -186,7 +195,7 @@ function Row({
           <label className="block text-xs" style={{ color: "var(--color-muted)" }}>
             Formato
             <select value={draft.formato} onChange={(e) => save({ ...draft, formato: e.target.value })} className="mt-1 block min-h-[44px] px-2 rounded-lg text-base" style={fieldStyle}>
-              {FORMATI.map((f) => <option key={f}>{f}</option>)}
+              {[...new Set([...FORMATI, draft.formato])].map((f) => <option key={f}>{f}</option>)}
             </select>
           </label>
           <label className="block text-xs" style={{ color: "var(--color-muted)" }}>
@@ -219,6 +228,7 @@ function Magazzino() {
   const [offline, setOffline] = useState(false);
   const [operatore, setOperatore] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<string | null>(null);
+  const [soloAnnata, setSoloAnnata] = useState(false);
   const [hasFront, setHasFront] = useState(false);
   const front = useRef<Promise<string> | null>(null);
   const lastTap = useRef(0);
@@ -332,7 +342,12 @@ function Magazzino() {
     );
   }
 
-  const visibili = filtro ? items.filter((i) => i.operatore === filtro) : items;
+  // Sorted by producer here, to work along the shelf rather than in shooting order.
+  const visibili = soloAnnata
+    ? items.filter(annataDaVerificare).sort((a, b) => a.produttore.localeCompare(b.produttore, "it") || a.nome_vino.localeCompare(b.nome_vino, "it"))
+    : filtro
+      ? items.filter((i) => i.operatore === filtro)
+      : items;
   const totale = visibili.reduce((n, i) => n + i.quantita, 0);
   const daControllare = items.filter((i) => i.status === "da_controllare" || i.status === "errore" || i.duplicate_of).length;
 
@@ -390,11 +405,14 @@ function Magazzino() {
               {[null, ...OPERATORI].map((nome) => (
                 <button
                   key={nome ?? "tutti"}
-                  onClick={() => setFiltro(nome)}
-                  aria-pressed={filtro === nome}
+                  onClick={() => {
+                    setSoloAnnata(false);
+                    setFiltro(nome);
+                  }}
+                  aria-pressed={!soloAnnata && filtro === nome}
                   className="min-h-[44px] px-3 rounded-lg text-sm"
                   style={
-                    filtro === nome
+                    !soloAnnata && filtro === nome
                       ? { background: "var(--color-bordeaux)", color: "#fff" }
                       : { border: "1px solid rgba(120,94,20,0.3)", color: "var(--color-text)" }
                   }
@@ -402,6 +420,14 @@ function Magazzino() {
                   {nome ?? "Tutti"} ({nome ? items.filter((i) => i.operatore === nome).length : items.length})
                 </button>
               ))}
+              <button
+                onClick={() => setSoloAnnata(true)}
+                aria-pressed={soloAnnata}
+                className="min-h-[44px] px-3 rounded-lg text-sm font-medium"
+                style={soloAnnata ? { background: "#c0392b", color: "#fff" } : { border: "1px solid #c0392b", color: "#c0392b" }}
+              >
+                Annata da verificare ({items.filter(annataDaVerificare).length})
+              </button>
             </div>
           </div>
           <ul className="max-w-4xl mx-auto p-3 grid gap-3">
@@ -417,7 +443,9 @@ function Magazzino() {
             ))}
           </ul>
           {visibili.length === 0 && (
-            <p className="text-center py-12" style={{ color: "var(--color-muted)" }}>Nessuna bottiglia registrata.</p>
+            <p className="text-center py-12" style={{ color: "var(--color-muted)" }}>
+              {soloAnnata ? "Tutte le annate sono verificate." : "Nessuna bottiglia registrata."}
+            </p>
           )}
         </div>
       )}

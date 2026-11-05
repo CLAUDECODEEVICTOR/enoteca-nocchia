@@ -46,6 +46,18 @@ export function ensureSchema(): Promise<void> {
         );
       `;
       await sql`CREATE INDEX IF NOT EXISTS idx_last_scanned ON wine_scans (last_scanned_at DESC);`;
+      // Cards written from the warehouse photos: origine = 'magazzino'.
+      await sql`
+        ALTER TABLE wine_scans
+          ADD COLUMN IF NOT EXISTS origine TEXT,
+          ADD COLUMN IF NOT EXISTS categoria TEXT,
+          ADD COLUMN IF NOT EXISTS metodo TEXT,
+          ADD COLUMN IF NOT EXISTS occasione TEXT,
+          ADD COLUMN IF NOT EXISTS testo_etichetta TEXT,
+          ADD COLUMN IF NOT EXISTS dubbi TEXT,
+          ADD COLUMN IF NOT EXISTS confidenza TEXT,
+          ADD COLUMN IF NOT EXISTS abbinamenti_sito JSONB;
+      `;
     })();
   }
   return schemaReady;
@@ -107,6 +119,8 @@ export function ensureStockSchema(): Promise<void> {
       await sql`ALTER TABLE stock_items ADD COLUMN IF NOT EXISTS photo_back TEXT;`;
       await sql`ALTER TABLE stock_items ADD COLUMN IF NOT EXISTS operatore TEXT;`;
       await sql`ALTER TABLE stock_items ADD COLUMN IF NOT EXISTS modificato_da TEXT;`;
+      await sql`ALTER TABLE stock_items ADD COLUMN IF NOT EXISTS scheda JSONB;`;
+      await sql`ALTER TABLE stock_items ADD COLUMN IF NOT EXISTS scheda_id TEXT;`;
       await sql`CREATE INDEX IF NOT EXISTS idx_stock_created ON stock_items (created_at DESC);`;
       await sql`CREATE INDEX IF NOT EXISTS idx_stock_key ON stock_items (wine_key);`;
     })().catch((e) => {
@@ -115,4 +129,29 @@ export function ensureStockSchema(): Promise<void> {
     });
   }
   return stockSchemaReady;
+}
+
+// How long a scan took, as the customer felt it. fase 'reale' is a scan from the shop;
+// 'prova_prima' and 'prova_dopo' are the same 12 bottles timed before and after the catalogue.
+let tempiSchemaReady: Promise<void> | null = null;
+export function ensureTempiSchema(): Promise<void> {
+  if (!tempiSchemaReady) {
+    tempiSchemaReady = (async () => {
+      await sql`
+        CREATE TABLE IF NOT EXISTS scan_tempi (
+          id SERIAL PRIMARY KEY,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          fase TEXT NOT NULL DEFAULT 'reale',
+          fonte TEXT NOT NULL,
+          lang TEXT,
+          ms INTEGER NOT NULL,
+          vino TEXT
+        );
+      `;
+    })().catch((e) => {
+      tempiSchemaReady = null;
+      throw e;
+    });
+  }
+  return tempiSchemaReady;
 }

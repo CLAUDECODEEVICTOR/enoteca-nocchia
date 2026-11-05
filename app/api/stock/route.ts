@@ -8,7 +8,7 @@ export const maxDuration = 120;
 
 const MAX_IMAGE = 4_000_000; // stays under the 4.5 MB function body limit
 const ID = /^[0-9a-f-]{36}$/i;
-const COLUMNS = sql`id, created_at, status, nome_vino, produttore, annata, denominazione, gradazione, formato, quantita, prezzo, confidenza, duplicate_of, operatore, modificato_da`;
+const COLUMNS = sql`id, created_at, status, nome_vino, produttore, annata, denominazione, gradazione, formato, quantita, prezzo, confidenza, duplicate_of, operatore, modificato_da, scheda->>'dubbi' AS dubbi, scheda->>'categoria' AS categoria`;
 
 function guard(req: NextRequest): NextResponse | null {
   const denied = requireScope(req, "admin");
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
       const r = await readLabel(front, back);
       const key = r.nome_vino ? wineKey(r.nome_vino, r.produttore, r.annata) : null;
       const twin = key
-        ? await sql`SELECT id FROM stock_items WHERE wine_key = ${key} AND id <> ${id} AND duplicate_of IS NULL ORDER BY created_at LIMIT 1`
+        ? await sql`SELECT id FROM stock_items WHERE wine_key = ${key} AND formato = ${r.formato || "750 ml"} AND id <> ${id} AND duplicate_of IS NULL ORDER BY created_at LIMIT 1`
         : [];
       const clear = r.nome_vino && r.annata && (r.confidenza === "alta" || r.confidenza === "media");
       const rows = await sql`
@@ -137,6 +137,7 @@ export async function PATCH(req: NextRequest) {
       UPDATE stock_items SET
         nome_vino = ${nome}, produttore = ${produttore}, annata = ${annata},
         formato = ${text(b.formato, 30) || "750 ml"}, quantita = ${quantita}, prezzo = ${prezzo},
+        scheda = CASE WHEN nome_vino <> ${nome} OR produttore <> ${produttore} OR annata <> ${annata} THEN NULL ELSE scheda END,
         wine_key = ${key}, status = ${nome ? "ok" : "da_controllare"}, modificato_da = ${modificatoDa}, updated_at = NOW()
       WHERE id = ${id}
       RETURNING ${COLUMNS}`;

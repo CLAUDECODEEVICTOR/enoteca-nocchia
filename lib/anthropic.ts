@@ -4,7 +4,7 @@ export const anthropicClient = new Anthropic();
 
 export function buildPrompt(lang: "it" | "en" = "it"): string {
   if (lang === "en") {
-    return `You are an expert sommelier analyzing a wine bottle label.
+    return `You are an expert sommelier analyzing the label of a bottle sold by a wine shop: wine, sparkling wine, spirit or liqueur.
 
 WORK IN TWO STRICT STEPS:
 
@@ -35,11 +35,11 @@ WHEN CONFIDENCE IS "nulla", THE DESCRIZIONE FIELD MUST BE A SHORT IMPERATIVE SEN
 - Bottle too far / label too small → "Label too small. Get closer to the bottle."
 - Label partially out of frame or covered (fingers, hand, other object) → "Label partially covered. Retake making sure the whole label is visible."
 - Bottle visible but no label / back of bottle / wine being poured into a glass → "I cannot see a wine label. Retake the picture with the label facing the camera."
-- Not a wine bottle at all → "This is not a wine bottle. Take a picture of a wine label."
+- Not a bottle of wine, spirit or liqueur at all → "This is not a bottle we can read. Take a picture of the label."
 NEVER write a long descriptive sentence. NEVER explain what you DO see. Only tell the user what action to take.`;
   }
 
-  return `Sei un sommelier esperto che analizza l'etichetta di una bottiglia di vino.
+  return `Sei un sommelier esperto che analizza l'etichetta di una bottiglia venduta da un'enoteca: vino, bollicine, distillato o liquore.
 
 LAVORA IN DUE PASSI RIGIDI:
 
@@ -68,6 +68,6 @@ QUANDO LA CONFIDENZA È "nulla", IL CAMPO DESCRIZIONE DEVE ESSERE UNA FRASE BREV
 - Bottiglia troppo lontana / etichetta troppo piccola → "Etichetta troppo piccola. Avvicinati alla bottiglia."
 - Etichetta parzialmente fuori inquadratura o coperta (dita, mano, altri oggetti) → "Etichetta parzialmente coperta. Riscatta mostrandola tutta."
 - Bottiglia visibile ma senza etichetta / retro della bottiglia / vino in mescita nel calice → "Non vedo l'etichetta. Riscatta la foto con l'etichetta rivolta verso la fotocamera."
-- Non è una bottiglia di vino → "Questa non è una bottiglia di vino. Inquadra l'etichetta di un vino."
+- Non è una bottiglia di vino, distillato o liquore → "Questa non è una bottiglia che so leggere. Inquadra l'etichetta."
 MAI scrivere frasi descrittive lunghe. MAI spiegare cosa vedi. Solo dire all'utente quale azione fare.`;
 }

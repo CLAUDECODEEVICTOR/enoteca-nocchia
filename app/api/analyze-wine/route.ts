@@ -3,6 +3,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { anthropicClient, buildPrompt } from "@/lib/anthropic";
 import { rateLimit } from "@/lib/rate-limit";
 import { requireScope } from "@/lib/auth";
+import { schedaDalCatalogo } from "@/lib/catalogo";
 
 const MAX_BASE64_LENGTH = 10_000_000; // ~7.5MB decoded
 
@@ -85,6 +86,14 @@ export async function POST(req: NextRequest) {
         { error: "Immagine troppo grande (max 7MB)" },
         { status: 413 }
       );
+    }
+
+    // The catalogue's cards are in Italian, so an English scan writes its own.
+    if (lang === "it") {
+      const scheda = await schedaDalCatalogo(imageBase64);
+      if (scheda) {
+        return NextResponse.json({ it: scheda }, { headers: { "x-fonte": "catalogo" } });
+      }
     }
 
     // The prompt goes in `system`, ahead of the photo, so it stays a stable
