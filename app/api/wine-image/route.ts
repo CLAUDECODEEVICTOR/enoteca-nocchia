@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
   if (denied) return denied;
 
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
-  if (!rateLimit(ip, 30)) {
+  if (!rateLimit(`immagine:${ip}`, 30)) {
     return NextResponse.json({ error: "Troppe richieste" }, { status: 429 });
   }
 
@@ -77,13 +77,13 @@ export async function GET(req: NextRequest) {
   if (imageUrl) {
     return NextResponse.json(
       { imageUrl },
-      { headers: { "Cache-Control": "public, max-age=86400, s-maxage=86400" } }
+      { headers: { "Cache-Control": "private, max-age=86400" } }
     );
   }
 
   const fallback = await searchBingImages(`${query} bottiglia vino`, true);
   return NextResponse.json(
     { imageUrl: fallback },
-    { headers: { "Cache-Control": "public, max-age=86400, s-maxage=86400" } }
+    { headers: { "Cache-Control": "private, max-age=86400" } }
   );
 }

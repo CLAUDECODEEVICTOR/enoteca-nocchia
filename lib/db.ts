@@ -121,6 +121,8 @@ export function ensureStockSchema(): Promise<void> {
       await sql`ALTER TABLE stock_items ADD COLUMN IF NOT EXISTS modificato_da TEXT;`;
       await sql`ALTER TABLE stock_items ADD COLUMN IF NOT EXISTS scheda JSONB;`;
       await sql`ALTER TABLE stock_items ADD COLUMN IF NOT EXISTS scheda_id TEXT;`;
+      await sql`ALTER TABLE stock_items ADD COLUMN IF NOT EXISTS eliminato_il TIMESTAMPTZ;`;
+      await sql`ALTER TABLE stock_items ADD COLUMN IF NOT EXISTS unito_in TEXT;`;
       await sql`CREATE INDEX IF NOT EXISTS idx_stock_created ON stock_items (created_at DESC);`;
       await sql`CREATE INDEX IF NOT EXISTS idx_stock_key ON stock_items (wine_key);`;
     })().catch((e) => {

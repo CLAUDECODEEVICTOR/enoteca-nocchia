@@ -110,7 +110,7 @@ function Row({
   };
 
   const remove = async () => {
-    if (!window.confirm(`Eliminare ${item.nome_vino || "questa bottiglia"}?`)) return;
+    if (!window.confirm(`Spostare ${item.nome_vino || "questa bottiglia"} nel Cestino? Si può ripristinare.`)) return;
     await fetch(`/api/stock?id=${item.id}`, { method: "DELETE" });
     onRefresh();
   };
@@ -235,6 +235,8 @@ function Magazzino() {
   const [filtro, setFiltro] = useState<string | null>(null);
   const [soloAnnata, setSoloAnnata] = useState(false);
   const [hasFront, setHasFront] = useState(false);
+  const [rifiutata, setRifiutata] = useState(false);
+  const [cestino, setCestino] = useState<StockItem[] | null>(null);
   const front = useRef<Promise<string> | null>(null);
   const lastTap = useRef(0);
   const active = useRef(new Set<string>());
@@ -254,7 +256,7 @@ function Magazzino() {
       if (active.current.size >= PARALLEL) return;
       if (active.current.has(shot.id)) continue;
       // Left by the single-photo version: the server can't accept it, it would retry forever.
-      if (!shot.frontBase64) {
+      if (!shot.frontBase64 || !shot.backBase64) {
         await removeShot(shot.id);
         continue;
       }
@@ -269,9 +271,14 @@ function Magazzino() {
             setExpired(true);
             return false;
           }
+          if (res.status >= 400 && res.status < 500 && res.status !== 429) {
+            setRifiutata(true);
+            return false;
+          }
           if (!res.ok) throw new Error(String(res.status));
           await removeShot(shot.id);
           setOffline(false);
+          setRifiutata(false);
           const { item } = await res.json();
           setItems((prev) => [item, ...prev.filter((p) => p.id !== item.id)]);
           return true;
@@ -319,6 +326,21 @@ function Magazzino() {
     },
     [pump, operatore]
   );
+
+  const apriCestino = async () => {
+    const res = await fetch("/api/stock?cestino=1", { cache: "no-store" }).catch(() => null);
+    if (res?.status === 401) setExpired(true);
+    if (res?.ok) setCestino((await res.json()).items || []);
+  };
+
+  const ripristina = async (id: string) => {
+    await fetch("/api/stock", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ripristina: true, modificato_da: operatore }),
+    });
+    await Promise.all([apriCestino(), refresh()]);
+  };
 
   const cambiaOperatore = () => {
     front.current = null;
@@ -388,12 +410,14 @@ function Magazzino() {
         </button>
       )}
 
-      {(offline || expired) && (
+      {(offline || expired || rifiutata) && (
         <div className="fixed top-20 left-3 right-3 z-50 rounded-lg p-3 text-sm text-white flex flex-wrap items-center gap-3" style={{ background: "#c0392b" }}>
           <span className="flex-1">
             {expired
               ? "Sessione scaduta: reinserisci il PIN. Le foto restano salvate sul tablet."
-              : "Connessione assente: le foto restano sul tablet e partono appena torna."}
+              : offline
+                ? "Connessione assente: le foto restano sul tablet e partono appena torna."
+                : "Una foto non è stata accettata dal server: resta sul tablet, avvisa Edoardo."}
           </span>
           {expired && (
             <button onClick={() => window.location.reload()} className="min-h-[44px] px-4 rounded-lg font-medium" style={{ background: "#fff", color: "#c0392b" }}>
@@ -419,12 +443,13 @@ function Magazzino() {
                   key={nome ?? "tutti"}
                   onClick={() => {
                     setSoloAnnata(false);
+                    setCestino(null);
                     setFiltro(nome);
                   }}
-                  aria-pressed={!soloAnnata && filtro === nome}
+                  aria-pressed={!cestino && !soloAnnata && filtro === nome}
                   className="min-h-[44px] px-3 rounded-lg text-sm"
                   style={
-                    !soloAnnata && filtro === nome
+                    !cestino && !soloAnnata && filtro === nome
                       ? { background: "var(--color-bordeaux)", color: "#fff" }
                       : { border: "1px solid rgba(120,94,20,0.3)", color: "var(--color-text)" }
                   }
@@ -433,16 +458,43 @@ function Magazzino() {
                 </button>
               ))}
               <button
-                onClick={() => setSoloAnnata(true)}
-                aria-pressed={soloAnnata}
+                onClick={() => {
+                  setCestino(null);
+                  setSoloAnnata(true);
+                }}
+                aria-pressed={!cestino && soloAnnata}
                 className="min-h-[44px] px-3 rounded-lg text-sm font-medium"
-                style={soloAnnata ? { background: "#c0392b", color: "#fff" } : { border: "1px solid #c0392b", color: "#c0392b" }}
+                style={!cestino && soloAnnata ? { background: "#c0392b", color: "#fff" } : { border: "1px solid #c0392b", color: "#c0392b" }}
               >
                 Annata da verificare ({items.filter(annataDaVerificare).length})
               </button>
+              <button
+                onClick={apriCestino}
+                aria-pressed={!!cestino}
+                className="min-h-[44px] px-3 rounded-lg text-sm"
+                style={cestino ? { background: "var(--color-bordeaux)", color: "#fff" } : { border: "1px solid rgba(120,94,20,0.3)", color: "var(--color-text)" }}
+              >
+                Cestino{cestino ? ` (${cestino.length})` : ""}
+              </button>
             </div>
           </div>
-          <ul className="max-w-4xl mx-auto p-3 grid gap-3">
+          {cestino && (
+            <ul className="max-w-4xl mx-auto p-3 grid gap-3">
+              {cestino.map((item) => (
+                <li key={item.id} className="rounded-xl p-3 flex items-center gap-3" style={{ background: "var(--color-surface)", border: "1px solid rgba(120,94,20,0.2)" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/api/stock/photo?id=${item.id}`} alt="" loading="lazy" decoding="async" className="w-16 h-20 rounded-lg object-cover shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium" style={{ color: "var(--color-text)" }}>{item.nome_vino || item.produttore || "Senza nome"}</p>
+                    <p className="text-sm" style={{ color: "var(--color-muted)" }}>{[item.produttore, item.annata, item.formato].filter(Boolean).join(", ")}</p>
+                  </div>
+                  <button onClick={() => ripristina(item.id)} className="min-h-[44px] px-4 rounded-lg font-medium text-white shrink-0" style={{ background: "var(--color-bordeaux)" }}>Ripristina</button>
+                </li>
+              ))}
+              {cestino.length === 0 && <p className="text-center py-12" style={{ color: "var(--color-muted)" }}>Il Cestino è vuoto.</p>}
+            </ul>
+          )}
+          {!cestino && <ul className="max-w-4xl mx-auto p-3 grid gap-3">
             {visibili.map((item) => (
               <Row
                 key={`${item.id}:${item.status}`}
@@ -453,8 +505,8 @@ function Magazzino() {
                 onRefresh={refresh}
               />
             ))}
-          </ul>
-          {visibili.length === 0 && (
+          </ul>}
+          {!cestino && visibili.length === 0 && (
             <p className="text-center py-12" style={{ color: "var(--color-muted)" }}>
               {soloAnnata ? "Tutte le annate sono verificate." : "Nessuna bottiglia registrata."}
             </p>

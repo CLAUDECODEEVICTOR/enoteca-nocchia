@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     if (denied) return denied;
 
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
-    if (!rateLimit(ip, 10)) {
+    if (!rateLimit(`feedback:${ip}`, 10)) {
       return NextResponse.json({ error: "Troppe richieste" }, { status: 429 });
     }
 

@@ -130,7 +130,7 @@ if (mode === "invia") {
   // One card per wine: the row a person corrected speaks for its identical rows.
   const rows = await sql`
     SELECT DISTINCT ON (COALESCE(wine_key, id)) id FROM stock_items
-    WHERE scheda IS NULL
+    WHERE scheda IS NULL AND eliminato_il IS NULL
     ORDER BY COALESCE(wine_key, id), (modificato_da IS NOT NULL) DESC, (confidenza = 'alta') DESC, created_at`;
   console.log(`vini da analizzare: ${rows.length}`);
   // A batch holds at most 256 MB and two photos weigh about 430 KB.
@@ -228,6 +228,8 @@ if (mode === "salva") {
             updated_at = NOW()
           WHERE id = ${row.id}`;
       }
+      // Other formats of the same wine share this card: their copy must not fall behind.
+      if (usable) await sql`UPDATE stock_items SET scheda = ${JSON.stringify(c)}::jsonb WHERE scheda_id = ${schedaId} AND scheda IS NOT NULL`;
     }
   }
   // The same wine in another size is a different product, not a duplicate to merge.

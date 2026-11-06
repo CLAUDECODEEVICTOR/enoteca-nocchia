@@ -17,7 +17,7 @@ const litri = (f) => {
 };
 const rows = await sql`
   SELECT scheda, scheda_id, formato, quantita, prezzo, status, id FROM stock_items
-  WHERE scheda_id IS NOT NULL ORDER BY scheda_id, formato`;
+  WHERE scheda_id IS NOT NULL AND eliminato_il IS NULL ORDER BY scheda_id, formato`;
 const prodotti = new Map();
 for (const r of rows) {
   const c = r.scheda;

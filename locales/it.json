@@ -44,6 +44,9 @@
   "error": {
     "not_recognized": "Non riesco a leggere questa etichetta",
     "retry": "Riprova con una foto più nitida",
-    "api_error": "Errore di connessione, riprova"
+    "api_error": "Errore di connessione, riprova",
+    "camera_unavailable": "Fotocamera non disponibile. Controlla che nessun'altra app la stia usando e riprova.",
+    "camera_denied": "Permesso fotocamera negato. Abilita la fotocamera nelle impostazioni del browser.",
+    "camera_retry": "Riprova"
   }
 }

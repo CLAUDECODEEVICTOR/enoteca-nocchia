@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
 
     // Rate limit: max 15 requests per minute per IP
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
-    if (!rateLimit(ip, 15)) {
+    if (!rateLimit(`scan:${ip}`, 15)) {
       return NextResponse.json(
         { error: "Troppe richieste. Riprova tra un minuto." },
         { status: 429 }
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
           ],
         },
       ],
-    });
+    }, { timeout: 22_000, maxRetries: 1 }); // reading (12 s) + two tries stay inside maxDuration
 
     console.log(
       "[analyze-wine] lang:", lang,

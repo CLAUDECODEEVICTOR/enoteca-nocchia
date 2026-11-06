@@ -19,6 +19,7 @@ interface ScanPayload {
   abbinamenti?: string[];
   descrizione?: string;
   bottleImage?: string | null;
+  catalogo_id?: string;
   lang?: "it" | "en";
 }
 
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
     if (denied) return denied;
 
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
-    if (!rateLimit(ip, 30)) {
+    if (!rateLimit(`salva:${ip}`, 30)) {
       return NextResponse.json({ error: "Troppe richieste" }, { status: 429 });
     }
 
@@ -39,6 +40,16 @@ export async function POST(req: NextRequest) {
     }
 
     await ensureSchema();
+
+    // From the catalogue: the same card, even if an unconfirmed detail was held back.
+    if (body.catalogo_id) {
+      await sql`
+        UPDATE wine_scans SET
+          scan_count = scan_count + 1, last_scanned_at = NOW(),
+          bottle_image = COALESCE(${body.bottleImage || null}::text, bottle_image)
+        WHERE id = ${body.catalogo_id} AND origine = 'magazzino'`;
+      return NextResponse.json({ ok: true, id: body.catalogo_id });
+    }
 
     const id = wineKey(body.nome_vino, body.produttore || "", body.annata || "");
     if (!id) {

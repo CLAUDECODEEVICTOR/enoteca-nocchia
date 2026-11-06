@@ -1,6 +1,6 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { anthropicClient } from "@/lib/anthropic";
-import { sql, ensureSchema } from "@/lib/db";
+import { sql, ensureSchema, ensureStockSchema } from "@/lib/db";
 
 // The shop's wines already have a card, written from their front and back photos.
 // A scan only has to work out which bottle it is: reading the label and looking it
@@ -100,15 +100,37 @@ export function cerca(voci: Voce[], lettura: Lettura): { voce?: Voce; motivo: st
   return annate.length === 1 ? { voce: annate[0].v, motivo: "unica annata" } : { motivo: "piu annate" };
 }
 
+// The card's own doubts, in plain words. A customer must not read as certain a fact the
+// card itself says to check, so it stays out until a person confirms it; a false alarm
+// only hides a detail.
+const INCERTI = {
+  vitigni: /vitign|uvaggio|composizione|assemblaggio|blend/i,
+  gradazione: /gradazione|% ?vol/i,
+  annata: /annata|millesim|vintage/i,
+  denominazione: /denominazione|\bdocg?\b|\bigt\b|\bigp\b/i,
+};
+
+function senzaDatiIncerti(dubbi: string, annataLetta: string) {
+  return {
+    ...(INCERTI.vitigni.test(dubbi) && { vitigni: [] }),
+    ...(INCERTI.gradazione.test(dubbi) && { gradazione: "" }),
+    ...(INCERTI.annata.test(dubbi) && { annata: annataLetta }),
+    ...(INCERTI.denominazione.test(dubbi) && { denominazione: "" }),
+  };
+}
+
 let cache: { voci: Voce[]; scade: number } | null = null;
 const CACHE_MS = 5 * 60 * 1000;
 
 async function voci(): Promise<Voce[]> {
   if (cache && cache.scade > Date.now()) return cache.voci;
   await ensureSchema();
+  await ensureStockSchema();
+  // Only cards a live stock row still stands behind: correcting or deleting the row retires its card.
   const rows = await sql`
-    SELECT id, nome_vino, produttore, annata FROM wine_scans
-    WHERE origine = 'magazzino' AND confidenza IN ('alta', 'media') AND COALESCE(annata, '') <> ''`;
+    SELECT id, nome_vino, produttore, annata FROM wine_scans w
+    WHERE origine = 'magazzino' AND confidenza IN ('alta', 'media') AND COALESCE(annata, '') <> ''
+      AND EXISTS (SELECT 1 FROM stock_items s WHERE s.scheda_id = w.id AND s.scheda IS NOT NULL AND s.eliminato_il IS NULL)`;
   const lista = rows.map((r) => ({
     id: r.id as string,
     nome_vino: r.nome_vino as string,
@@ -132,7 +154,7 @@ async function leggi(imageBase64: string): Promise<Lettura> {
         content: [{ type: "image", source: { type: "base64", media_type: "image/jpeg", data: imageBase64 } }],
       },
     ],
-  });
+  }, { timeout: 12_000, maxRetries: 0 }); // stuck here, the full scan still has time to answer
   if (response.stop_reason !== "end_turn") throw new Error(`Lettura interrotta: ${response.stop_reason}`);
   const text = response.content.filter((b): b is Anthropic.TextBlock => b.type === "text").pop()?.text;
   if (!text) throw new Error("Risposta senza testo");
@@ -150,9 +172,11 @@ export async function schedaDalCatalogo(imageBase64: string) {
     if (!voce) return null;
     const rows = await sql`
       SELECT nome_vino, produttore, annata, regione, paese, denominazione, vitigni, gradazione,
-             temperatura_servizio, note_visive, note_olfattive, note_gustative, abbinamenti, descrizione, confidenza
+             temperatura_servizio, note_visive, note_olfattive, note_gustative, abbinamenti, descrizione, confidenza, dubbi
       FROM wine_scans WHERE id = ${voce.id}`;
-    return rows[0] ? { ...rows[0], testo_etichetta: lettura.testo } : null;
+    if (!rows[0]) return null;
+    const { dubbi, ...scheda } = rows[0];
+    return { ...scheda, ...senzaDatiIncerti((dubbi as string) || "", lettura.annata), catalogo_id: voce.id, testo_etichetta: lettura.testo };
   } catch (error) {
     console.error("[catalogo] passo allo scan completo:", error);
     return null;

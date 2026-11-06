@@ -70,6 +70,12 @@ export default function ScanPage() {
         body: JSON.stringify({ imageBase64: uploadImage, lang: i18n.language.startsWith("en") ? "en" : "it" }),
       });
 
+      // Session over: back to the PIN screen, not an error dressed up as a wine card.
+      if (res.status === 401) {
+        window.location.reload();
+        return;
+      }
+
       const data = await res.json();
       if (res.ok) {
         // The stopwatch must never get in the customer's way: no await, errors ignored.

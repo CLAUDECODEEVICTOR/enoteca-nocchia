@@ -27,7 +27,9 @@ export async function GET(req: NextRequest) {
   if (blocked) return blocked;
   try {
     await ensureStockSchema();
-    const items = await sql`SELECT ${COLUMNS} FROM stock_items ORDER BY created_at DESC LIMIT 5000`;
+    const items = req.nextUrl.searchParams.get("cestino")
+      ? await sql`SELECT ${COLUMNS} FROM stock_items WHERE eliminato_il IS NOT NULL ORDER BY eliminato_il DESC LIMIT 5000`
+      : await sql`SELECT ${COLUMNS} FROM stock_items WHERE eliminato_il IS NULL ORDER BY created_at DESC LIMIT 5000`;
     return NextResponse.json({ items });
   } catch (error) {
     console.error("[stock:list]", error);
@@ -72,7 +74,7 @@ export async function POST(req: NextRequest) {
       const r = await readLabel(front, back);
       const key = r.nome_vino ? wineKey(r.nome_vino, r.produttore, r.annata) : null;
       const twin = key
-        ? await sql`SELECT id FROM stock_items WHERE wine_key = ${key} AND formato = ${r.formato || "750 ml"} AND id <> ${id} AND duplicate_of IS NULL ORDER BY created_at LIMIT 1`
+        ? await sql`SELECT id FROM stock_items WHERE wine_key = ${key} AND formato = ${r.formato || "750 ml"} AND id <> ${id} AND duplicate_of IS NULL AND eliminato_il IS NULL ORDER BY created_at LIMIT 1`
         : [];
       const clear = r.nome_vino && r.annata && (r.confidenza === "alta" || r.confidenza === "media");
       const rows = await sql`
@@ -109,15 +111,30 @@ export async function PATCH(req: NextRequest) {
     if (b.mergeInto) {
       const into = String(b.mergeInto);
       if (!ID.test(into)) return NextResponse.json({ error: "ID non valido" }, { status: 400 });
-      // One statement, so the quantity can't be lost between the delete and the update.
+      // One statement, so the quantity can't be lost. The row goes to the bin with its photos.
       await sql`
         WITH src AS (
-          DELETE FROM stock_items WHERE id = ${id}
-            AND EXISTS (SELECT 1 FROM stock_items WHERE id = ${into})
+          UPDATE stock_items SET eliminato_il = NOW(), unito_in = ${into}, modificato_da = ${modificatoDa}
+          WHERE id = ${id} AND eliminato_il IS NULL
+            AND EXISTS (SELECT 1 FROM stock_items WHERE id = ${into} AND eliminato_il IS NULL)
           RETURNING quantita
         )
         UPDATE stock_items SET quantita = quantita + (SELECT quantita FROM src), modificato_da = ${modificatoDa}, updated_at = NOW()
         WHERE id = ${into} AND EXISTS (SELECT 1 FROM src)`;
+      return NextResponse.json({ ok: true });
+    }
+
+    if (b.ripristina) {
+      // Out of the bin; if it had been merged, it takes its bottles back.
+      await sql`
+        WITH src AS (
+          UPDATE stock_items s SET eliminato_il = NULL, unito_in = NULL, duplicate_of = NULL, modificato_da = ${modificatoDa}, updated_at = NOW()
+          FROM (SELECT id, unito_in FROM stock_items WHERE id = ${id} AND eliminato_il IS NOT NULL) prima
+          WHERE s.id = prima.id
+          RETURNING s.quantita, prima.unito_in
+        )
+        UPDATE stock_items SET quantita = GREATEST(0, quantita - (SELECT quantita FROM src)), updated_at = NOW()
+        WHERE id = (SELECT unito_in FROM src)`;
       return NextResponse.json({ ok: true });
     }
 
@@ -154,7 +171,8 @@ export async function DELETE(req: NextRequest) {
   try {
     const id = req.nextUrl.searchParams.get("id") || "";
     if (!ID.test(id)) return NextResponse.json({ error: "ID non valido" }, { status: 400 });
-    await sql`DELETE FROM stock_items WHERE id = ${id}`;
+    // To the bin: a bottle's photos can't be taken again without going back to the shelf.
+    await sql`UPDATE stock_items SET eliminato_il = NOW(), updated_at = NOW() WHERE id = ${id}`;
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("[stock:delete]", error);

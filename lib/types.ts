@@ -17,6 +17,8 @@ export interface WineAnalysis {
   // Verbatim transcription of the label text — produced by the analyze-wine prompt
   // step 1. Used for feedback/debugging only; not rendered on WineCard.
   testo_etichetta?: string;
+  // Set when the card came from the catalogue: the scan is counted on that card.
+  catalogo_id?: string;
 }
 
 export interface BilingualWineAnalysis {

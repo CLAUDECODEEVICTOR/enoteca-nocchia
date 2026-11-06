@@ -44,6 +44,9 @@
   "error": {
     "not_recognized": "Cannot read this label",
     "retry": "Try again with a clearer photo",
-    "api_error": "Connection error, please retry"
+    "api_error": "Connection error, please retry",
+    "camera_unavailable": "Camera unavailable. Make sure no other app is using it and try again.",
+    "camera_denied": "Camera permission denied. Enable the camera in your browser settings.",
+    "camera_retry": "Try again"
   }
 }

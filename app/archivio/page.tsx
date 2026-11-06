@@ -22,6 +22,7 @@ interface Riga {
   foto_id: string | null;
   formati: string[] | null;
   pezzi: number | null;
+  con_dubbi: boolean;
 }
 
 interface SenzaScheda {
@@ -55,6 +56,7 @@ const GRUPPI: { nome: string; categorie: string[] }[] = [
   { nome: "Dolci e fortificati", categorie: ["passito", "moscato", "porto", "marsala", "muffato", "vin-santo", "recioto"] },
 ];
 const CLIENTI = "Solo scan dei clienti";
+const DUBBI = "Da verificare";
 const SENZA = "Senza scheda";
 const A_PAGINA = 60;
 
@@ -208,7 +210,7 @@ function ArchiveContent() {
   }, []);
 
   const inGruppo = (r: Riga, nome: string) =>
-    nome === CLIENTI ? r.origine !== "magazzino" : GRUPPI.find((g) => g.nome === nome)?.categorie.includes(r.categoria ?? "") ?? false;
+    nome === DUBBI ? r.con_dubbi : nome === CLIENTI ? r.origine !== "magazzino" : GRUPPI.find((g) => g.nome === nome)?.categorie.includes(r.categoria ?? "") ?? false;
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -227,6 +229,7 @@ function ArchiveContent() {
     { nome: null as string | null, n: righe.length },
     ...GRUPPI.map((g) => ({ nome: g.nome as string | null, n: righe.filter((r) => inGruppo(r, g.nome)).length })),
     { nome: CLIENTI as string | null, n: righe.length - daMagazzino },
+    { nome: DUBBI as string | null, n: righe.filter((r) => r.con_dubbi).length },
     { nome: SENZA as string | null, n: senzaScheda.length },
   ];
 

@@ -14,6 +14,7 @@ export default function CameraStream({ onCapture, instruction }: CameraStreamPro
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [tentativo, setTentativo] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -21,6 +22,7 @@ export default function CameraStream({ onCapture, instruction }: CameraStreamPro
 
     async function startCamera() {
       try {
+        mediaStream?.getTracks().forEach((track) => track.stop());
         mediaStream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: "environment",
@@ -28,35 +30,45 @@ export default function CameraStream({ onCapture, instruction }: CameraStreamPro
             height: { ideal: 1080 },
           },
         });
-        if (mounted && videoRef.current) {
+        if (!mounted) {
+          mediaStream.getTracks().forEach((track) => track.stop());
+        } else if (videoRef.current) {
           videoRef.current.srcObject = mediaStream;
         }
-      } catch {
+      } catch (e) {
         if (mounted) {
           setCameraError(
-            t(
-              "error.camera_denied",
-              "Permesso fotocamera negato. Abilita la fotocamera nelle impostazioni del browser."
-            )
+            t(e instanceof DOMException && e.name === "NotAllowedError" ? "error.camera_denied" : "error.camera_unavailable")
           );
         }
       }
     }
 
+    // A tablet that went to sleep can come back with a dead stream and a frozen picture.
+    const onVisible = () => {
+      if (document.hidden) return;
+      const track = mediaStream?.getVideoTracks()[0];
+      if (!track || track.readyState === "ended" || track.muted) startCamera();
+      else videoRef.current?.play().catch(() => {});
+    };
+
     startCamera();
+    document.addEventListener("visibilitychange", onVisible);
 
     return () => {
       mounted = false;
+      document.removeEventListener("visibilitychange", onVisible);
       if (mediaStream) {
         mediaStream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, [t]);
+  }, [t, tentativo]);
 
   const handleCapture = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    if (!video || !canvas) return;
+    // Before the first frame the picture is empty: no shot, rather than a blank one in the queue.
+    if (!video || !canvas || !video.videoWidth) return;
 
     // Label text is the whole point of the capture: 1400px on the long side at
     // q=0.85 keeps small print legible for Claude Vision, and still lands well
@@ -92,6 +104,16 @@ export default function CameraStream({ onCapture, instruction }: CameraStreamPro
         >
           {cameraError}
         </p>
+        <button
+          onClick={() => {
+            setCameraError(null);
+            setTentativo((n) => n + 1);
+          }}
+          className="min-h-[52px] px-8 rounded-xl font-medium text-white"
+          style={{ background: "var(--color-bordeaux)" }}
+        >
+          {t("error.camera_retry")}
+        </button>
       </div>
     );
   }

@@ -15,7 +15,7 @@ interface FeedbackItem {
   user_correction: string | null;
   notes: string | null;
   lang: string | null;
-  original_photo: string | null;
+  con_foto: boolean;
 }
 
 type Filter = "all" | "wrong" | "correct";
@@ -139,12 +139,12 @@ function FeedbackContent() {
 
                   {isOpen && (
                     <div className="px-4 pb-4 pt-1 flex flex-col gap-3 text-sm" style={{ color: "var(--color-text)" }}>
-                      {item.original_photo && (
+                      {item.con_foto && (
                         <div>
                           <div className="text-xs mb-1" style={{ color: "var(--color-muted)" }}>Foto scattata</div>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={`data:image/jpeg;base64,${item.original_photo}`}
+                            src={`/api/feedback/list?foto=${item.id}`}
                             alt="Foto scansione"
                             className="rounded-lg max-w-full"
                             style={{ maxHeight: "400px", objectFit: "contain" }}

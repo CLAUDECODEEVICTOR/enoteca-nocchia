@@ -29,25 +29,26 @@ export async function GET(req: NextRequest) {
         FROM wine_scans w WHERE w.id = ${id}`;
       if (!rows[0]) return NextResponse.json({ error: "Scheda non trovata" }, { status: 404 });
       const bottiglie = await sql`
-        SELECT id, formato, quantita, prezzo FROM stock_items WHERE scheda_id = ${id} ORDER BY created_at`;
+        SELECT id, formato, quantita, prezzo FROM stock_items WHERE scheda_id = ${id} AND scheda IS NOT NULL AND eliminato_il IS NULL ORDER BY created_at`;
       return NextResponse.json({ scheda: rows[0], bottiglie });
     }
 
     const wines = await sql`
       SELECT w.id, w.nome_vino, w.produttore, w.annata, w.regione, w.paese, w.denominazione,
              w.bottle_image, w.scan_count, w.last_scanned_at, w.categoria, w.origine,
-             s.foto_id, s.formati, s.pezzi
+             s.foto_id, s.formati, s.pezzi, COALESCE(w.dubbi, '') <> '' AS con_dubbi
       FROM wine_scans w
       LEFT JOIN (
         SELECT scheda_id, MIN(id::text) AS foto_id, ARRAY_AGG(DISTINCT formato) AS formati, SUM(quantita)::int AS pezzi
-        FROM stock_items WHERE scheda_id IS NOT NULL GROUP BY scheda_id
+        FROM stock_items WHERE scheda_id IS NOT NULL AND scheda IS NOT NULL AND eliminato_il IS NULL GROUP BY scheda_id
       ) s ON s.scheda_id = w.id
+      WHERE w.origine IS DISTINCT FROM 'magazzino' OR s.scheda_id IS NOT NULL
       ORDER BY LOWER(w.nome_vino)
       LIMIT 2000`;
 
     const senzaScheda = await sql`
       SELECT id, nome_vino, produttore, formato FROM stock_items
-      WHERE scheda_id IS NULL OR scheda IS NULL
+      WHERE (scheda_id IS NULL OR scheda IS NULL) AND eliminato_il IS NULL
       ORDER BY created_at`;
 
     return NextResponse.json({ wines, senzaScheda });
