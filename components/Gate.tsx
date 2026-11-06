@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import ChiusuraAdmin from "./ChiusuraAdmin";
 
 type Scope = "app" | "admin";
 
@@ -75,7 +76,14 @@ export default function Gate({ scope, title, subtitle, showBackLink, children }:
     }
   };
 
-  if (unlocked) return <>{children}</>;
+  if (unlocked) {
+    return (
+      <>
+        {scope === "admin" && <ChiusuraAdmin />}
+        {children}
+      </>
+    );
+  }
 
   // While the cookie is being checked, say so: a blank page reads as a broken app.
   if (checking) {

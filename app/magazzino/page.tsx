@@ -74,6 +74,7 @@ function Row({
 }) {
   const [draft, setDraft] = useState(item);
   const [failed, setFailed] = useState(false);
+  const [fotoAperta, setFotoAperta] = useState<string | null>(null);
   const reading = item.status === "da_leggere";
 
   const save = async (next: StockItem) => {
@@ -137,6 +138,7 @@ function Row({
         border: warn ? "2px solid #c0392b" : "1px solid rgba(120,94,20,0.2)",
       }}
     >
+      {fotoAperta && <FotoGrande id={item.id} lato={fotoAperta} onLato={setFotoAperta} onClose={() => setFotoAperta(null)} />}
       <div className="flex flex-col gap-2 shrink-0">
         {[["fronte", "Fronte della bottiglia"], ["retro", "Retro della bottiglia"]].map(([lato, alt]) => (
           // eslint-disable-next-line @next/next/no-img-element
@@ -147,7 +149,7 @@ function Row({
             // Each photo is a database read: all of them at once take the database down.
             loading="lazy"
             decoding="async"
-            onClick={() => window.open(`/api/stock/photo?id=${item.id}&lato=${lato}`, "_blank")}
+            onClick={() => setFotoAperta(lato)}
             className="w-24 md:w-40 h-36 md:h-56 rounded-lg object-cover cursor-pointer"
             style={{ background: "rgba(120,94,20,0.08)" }}
           />
@@ -340,7 +342,7 @@ function Magazzino() {
             </button>
           ))}
         </div>
-        <button onClick={() => router.push("/")} className="min-h-[44px] px-4" style={{ color: "var(--color-muted)" }}>Esci</button>
+        <button onClick={() => router.push("/admin")} className="min-h-[44px] px-4" style={{ color: "var(--color-muted)" }}>← Admin</button>
       </main>
     );
   }
@@ -363,10 +365,10 @@ function Magazzino() {
       {flash && <div className="fixed inset-0 z-30 bg-white/70 pointer-events-none" />}
 
       <div className="fixed top-3 left-3 right-3 z-30 flex items-center gap-2 text-white" style={{ paddingTop: "env(safe-area-inset-top)" }}>
-        <button onClick={() => router.push("/")} className="min-h-[44px] px-4 rounded-lg" style={{ background: "rgba(0,0,0,0.55)" }}>Esci</button>
+        <button onClick={() => router.push("/admin")} className="min-h-[44px] px-4 rounded-lg" style={{ background: "rgba(0,0,0,0.55)" }}>← Admin</button>
         <button onClick={cambiaOperatore} aria-label={`Cambia persona, ora ${operatore}`} className="min-h-[44px] px-4 rounded-lg" style={{ background: "rgba(0,0,0,0.55)" }}>{operatore}</button>
         <div className="min-h-[44px] px-4 rounded-lg flex items-center text-sm" style={{ background: "rgba(0,0,0,0.55)" }}>
-          {visibili.length} vini, {totale} bottiglie{pending > 0 ? `, ${pending} in lettura` : ""}
+          {visibili.length} prodotti, {totale} bottiglie{pending > 0 ? `, ${pending} in lettura` : ""}
         </div>
         <button onClick={() => setShowList(true)} className="min-h-[44px] px-4 rounded-lg ml-auto font-medium" style={{ background: "var(--color-bordeaux)" }}>
           Lista{daControllare > 0 ? ` (${daControllare} da controllare)` : ""}
@@ -387,10 +389,17 @@ function Magazzino() {
       )}
 
       {(offline || expired) && (
-        <div className="fixed top-20 left-3 right-3 z-30 rounded-lg p-3 text-sm text-white" style={{ background: "#c0392b" }}>
-          {expired
-            ? "Sessione scaduta: ricarica la pagina e reinserisci il PIN. Le foto restano salvate sul tablet."
-            : "Connessione assente: le foto restano sul tablet e partono appena torna."}
+        <div className="fixed top-20 left-3 right-3 z-50 rounded-lg p-3 text-sm text-white flex flex-wrap items-center gap-3" style={{ background: "#c0392b" }}>
+          <span className="flex-1">
+            {expired
+              ? "Sessione scaduta: reinserisci il PIN. Le foto restano salvate sul tablet."
+              : "Connessione assente: le foto restano sul tablet e partono appena torna."}
+          </span>
+          {expired && (
+            <button onClick={() => window.location.reload()} className="min-h-[44px] px-4 rounded-lg font-medium" style={{ background: "#fff", color: "#c0392b" }}>
+              Inserisci il PIN
+            </button>
+          )}
         </div>
       )}
 
@@ -400,8 +409,8 @@ function Magazzino() {
             <button onClick={() => setShowList(false)} className="min-h-[44px] px-4 rounded-lg font-medium text-white" style={{ background: "var(--color-bordeaux)" }}>
               Torna agli scatti
             </button>
-            <span className="text-sm" style={{ color: "var(--color-muted)" }}>{visibili.length} vini, {totale} bottiglie</span>
-            <a href="/api/stock/export" className="min-h-[44px] px-4 rounded-lg ml-auto flex items-center text-sm" style={{ border: "1px solid rgba(120,94,20,0.3)", color: "var(--color-text)" }}>
+            <span className="text-sm" style={{ color: "var(--color-muted)" }}>{visibili.length} prodotti, {totale} bottiglie</span>
+            <a href="/api/stock/export" download className="min-h-[44px] px-4 rounded-lg ml-auto flex items-center text-sm" style={{ border: "1px solid rgba(120,94,20,0.3)", color: "var(--color-text)" }}>
               Esporta CSV
             </a>
             <div className="w-full flex flex-wrap gap-2">
@@ -453,6 +462,66 @@ function Magazzino() {
         </div>
       )}
     </>
+  );
+}
+
+// Stays inside the app: on the tablet's home-screen app a new tab has no way back.
+function FotoGrande({ id, lato, onLato, onClose }: { id: string; lato: string; onLato: (lato: string) => void; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Foto ${lato} della bottiglia`}
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center overscroll-contain"
+      style={{
+        background: "rgba(0,0,0,0.92)",
+        paddingTop: "calc(env(safe-area-inset-top) + 68px)",
+        paddingBottom: "calc(env(safe-area-inset-bottom) + 76px)",
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`/api/stock/photo?id=${id}&lato=${lato}`}
+        alt={`${lato === "retro" ? "Retro" : "Fronte"} della bottiglia`}
+        onClick={(e) => e.stopPropagation()}
+        className="max-w-full max-h-full object-contain"
+      />
+      <button
+        onClick={onClose}
+        aria-label="Chiudi la foto"
+        className="fixed right-3 w-14 h-14 rounded-full flex items-center justify-center text-white"
+        style={{ top: "calc(env(safe-area-inset-top) + 8px)", background: "var(--color-bordeaux)" }}
+      >
+        <svg width={26} height={26} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      </button>
+      <div className="fixed left-0 right-0 flex justify-center gap-2" style={{ bottom: "calc(env(safe-area-inset-bottom) + 12px)" }}>
+        {["fronte", "retro"].map((l) => (
+          <button
+            key={l}
+            onClick={(e) => {
+              e.stopPropagation();
+              onLato(l);
+            }}
+            aria-pressed={lato === l}
+            className="min-h-[52px] min-w-[110px] px-5 rounded-lg font-medium capitalize"
+            style={lato === l ? { background: "#fff", color: "#000" } : { background: "rgba(255,255,255,0.15)", color: "#fff" }}
+          >
+            {l}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 

@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 // Two access levels:
 //   "app"   → customers, unlocks the scanner (PinGate on the root layout)
-//   "admin" → staff only, unlocks /archivio and /feedback and their APIs
+//   "admin" → staff only, unlocks /admin and the areas behind it, and their APIs
 export type Scope = "app" | "admin";
 
 export const COOKIE_NAME: Record<Scope, string> = {
@@ -14,7 +14,12 @@ export const COOKIE_NAME: Record<Scope, string> = {
 
 // 12 hours: long enough for a full service day on the enoteca tablet,
 // short enough that a borrowed phone doesn't stay unlocked forever.
-const MAX_AGE_SECONDS = 60 * 60 * 12;
+const MAX_AGE_SECONDS: Record<Scope, number> = {
+  app: 60 * 60 * 12,
+  // Same tablet the customers use: renewed while in use, see ChiusuraAdmin.
+  // One minute over the 20 of inactivity, because renewals are a minute apart.
+  admin: 60 * 21,
+};
 
 function authSecret(): string {
   return process.env.AUTH_SECRET || "";
@@ -48,10 +53,11 @@ export function pinMatches(scope: Scope, pin: unknown): boolean {
 
 /** Signed cookie value: expiry plus its HMAC. Tampering invalidates the signature. */
 export function issueToken(scope: Scope): { value: string; maxAge: number } {
-  const expiresAt = Date.now() + MAX_AGE_SECONDS * 1000;
+  const maxAge = MAX_AGE_SECONDS[scope];
+  const expiresAt = Date.now() + maxAge * 1000;
   return {
     value: `${expiresAt}.${sign(scope, expiresAt)}`,
-    maxAge: MAX_AGE_SECONDS,
+    maxAge,
   };
 }
 
@@ -84,5 +90,10 @@ export function setAuthCookie(res: NextResponse, scope: Scope): NextResponse {
     path: "/",
     maxAge,
   });
+  return res;
+}
+
+export function clearAuthCookie(res: NextResponse, scope: Scope): NextResponse {
+  res.cookies.delete(COOKIE_NAME[scope]);
   return res;
 }

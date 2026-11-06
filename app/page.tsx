@@ -66,33 +66,13 @@ export default function HomePage() {
         </button>
       </div>
 
-      {/* Archive link — discreet, staff only */}
+      {/* Staff door: everything reserved sits behind the admin PIN */}
       <button
-        onClick={() => router.push("/archivio")}
-        className="fixed bottom-4 left-4 text-xs opacity-40 hover:opacity-80 transition-opacity"
-        style={{ color: "var(--color-muted)", paddingBottom: "env(safe-area-inset-bottom)" }}
-        aria-label="Archivio"
+        onClick={() => router.push("/admin")}
+        className="fixed left-1/2 -translate-x-1/2 min-h-[44px] px-4 text-xs opacity-60 hover:opacity-100 transition-opacity"
+        style={{ color: "var(--color-muted)", bottom: "calc(env(safe-area-inset-bottom) + 8px)" }}
       >
-        Archivio
-      </button>
-
-      {/* Stock registration — staff only */}
-      <button
-        onClick={() => router.push("/magazzino")}
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 min-h-[44px] px-4 text-xs opacity-60 hover:opacity-100 transition-opacity"
-        style={{ color: "var(--color-muted)", paddingBottom: "env(safe-area-inset-bottom)" }}
-      >
-        Magazzino
-      </button>
-
-      {/* Feedback admin link — discreet, staff only */}
-      <button
-        onClick={() => router.push("/feedback")}
-        className="fixed bottom-4 right-4 text-xs opacity-40 hover:opacity-80 transition-opacity"
-        style={{ color: "var(--color-muted)", paddingBottom: "env(safe-area-inset-bottom)" }}
-        aria-label="Feedback"
-      >
-        Feedback
+        Admin
       </button>
     </div>
   );

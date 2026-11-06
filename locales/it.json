@@ -1,7 +1,7 @@
 {
   "home": {
     "headline": "Scopri ogni bottiglia",
-    "subheadline_1": "Fotografa un vino,",
+    "subheadline_1": "Fotografa un'etichetta,",
     "subheadline_2": "il nostro sommelier AI ti racconta tutto",
     "cta": "Fotografa la bottiglia"
   },
@@ -12,7 +12,7 @@
     "analyze": "Analizza"
   },
   "loading": {
-    "headline": "Un buon vino richiede pazienza...",
+    "headline": "Una buona bottiglia richiede pazienza...",
     "messages": [
       "Il sommelier sta annusando...",
       "Consultando la cantina...",

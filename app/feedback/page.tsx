@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import FeedbackGate from "@/components/FeedbackGate";
 
 interface FeedbackItem {
@@ -22,6 +23,7 @@ type Filter = "all" | "wrong" | "correct";
 // Il contenuto vive dentro il gate: monta solo a PIN inserito, così la chiamata
 // a /api/feedback/list parte quando il cookie di sessione esiste già.
 function FeedbackContent() {
+  const router = useRouter();
   const [items, setItems] = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
@@ -35,7 +37,7 @@ function FeedbackContent() {
     fetch(`/api/feedback/list${qs}`)
       .then(async (r) => {
         // Senza questo controllo un errore del server sembrerebbe un archivio vuoto.
-        if (!r.ok) throw new Error(r.status === 401 ? "Sessione scaduta. Ricarica la pagina e reinserisci il PIN." : "Errore di caricamento");
+        if (!r.ok) throw new Error(r.status === 401 ? "Sessione scaduta. Torna ad Admin e reinserisci il PIN." : "Errore di caricamento");
         return r.json();
       })
       .then((data) => setItems(data.items || []))
@@ -52,6 +54,9 @@ function FeedbackContent() {
     <div className="min-h-dvh" style={{ background: "var(--color-bg)", color: "var(--color-text)" }}>
         <div className="max-w-3xl mx-auto px-5 md:px-8 py-8">
           <header className="mb-6">
+            <button onClick={() => router.push("/admin")} className="min-h-[44px] pr-3 text-sm" style={{ color: "var(--color-muted)" }}>
+              ← Admin
+            </button>
             <h1 className="text-3xl md:text-4xl font-bold mb-1" style={{ fontFamily: "var(--font-playfair)", color: "var(--color-gold)" }}>
               Feedback scansioni
             </h1>
@@ -152,7 +157,7 @@ function FeedbackContent() {
                       )}
 
                       {!item.is_correct && item.user_correction && (
-                        <Field label="Vino giusto secondo il proprietario" value={item.user_correction} />
+                        <Field label="Bottiglia giusta secondo il proprietario" value={item.user_correction} />
                       )}
 
                       {item.notes && <Field label="Note libere" value={item.notes} />}

@@ -25,7 +25,7 @@ const COPY = {
     prompt: "Questa analisi è corretta?",
     correct: "Sì, corretta",
     wrong: "No, sbagliata",
-    correctionLabel: "Qual è il vino giusto? (facoltativo)",
+    correctionLabel: "Qual è la bottiglia giusta? (facoltativo)",
     correctionPlaceholder: "Es. Brunello di Montalcino 2018, Casanova di Neri",
     notesLabel: "Note (facoltativo)",
     notesPlaceholder: "Cosa c'era di sbagliato? Annata? Produttore?",

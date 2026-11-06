@@ -65,8 +65,8 @@ function Cronometro() {
     <main className="min-h-screen p-4" style={{ background: "var(--color-bg)", color: "var(--color-text)" }}>
       <div className="max-w-3xl mx-auto grid gap-6">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/archivio")} className="min-h-[44px] pr-3 text-sm" style={{ color: "var(--color-muted)" }}>
-            Archivio
+          <button onClick={() => router.push("/admin")} className="min-h-[44px] pr-3 text-sm" style={{ color: "var(--color-muted)" }}>
+            ← Admin
           </button>
           <h1 className="text-2xl font-medium">Cronometro scan</h1>
         </div>
@@ -106,7 +106,7 @@ function Cronometro() {
               {ultimi.map((s) => (
                 <li key={s.id} className="flex items-center gap-3 px-3 py-2 text-sm" style={{ borderTop: "1px solid rgba(120,94,20,0.12)" }}>
                   <span className="w-14 shrink-0 font-medium">{sec(s.ms)}</span>
-                  <span className="flex-1 min-w-0 truncate">{s.vino || "Vino non indicato"}</span>
+                  <span className="flex-1 min-w-0 truncate">{s.vino || "Bottiglia non indicata"}</span>
                   <span className="shrink-0 text-xs" style={{ color: "var(--color-muted)" }}>
                     {s.fonte === "catalogo" ? "catalogo" : "da zero"},{" "}
                     {new Date(s.created_at).toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
