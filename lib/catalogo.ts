@@ -61,6 +61,7 @@ const anno = (s: string) => s.match(/(19|20)\d\d/)?.[0] ?? null;
 const COLORE = new Set(["rose", "rosato", "rosado", "blanc", "blancs", "bianco", "rosso", "noir", "noirs", "nero"]);
 
 const SOGLIA = 0.8;
+const RARA = 3; // a word on at most this many cards tells one wine from the others
 const MARGINE = 0.15;
 
 // Exported for the tests in scripts/: decides on the reading alone, so the rules can
@@ -93,7 +94,7 @@ export function cerca(voci: Voce[], lettura: Lettura): { voce?: Voce; motivo: st
     if (nominate.some((p) => !v.parole.includes(p) && frequenza.has(p) && !v.fronte?.includes(p))) continue;
     candidate.push({ v, preso, manca: tutto - preso });
   }
-  if (!candidate.length) return { motivo: "nessuno" };
+  if (!candidate.length) return dalFronte(voci, lettura, principale, visto);
 
   // On a tie, the card with fewer words the photo doesn't show: "Brut" over "Brut Rosé".
   candidate.sort((a, b) => b.preso - a.preso || a.manca - b.manca);
@@ -127,6 +128,34 @@ export function cerca(voci: Voce[], lettura: Lettura): { voce?: Voce; motivo: st
   }
   // Vintage not on the front: with only one in the shop, it's that one.
   return annate.length === 1 ? { voce: annate[0].v, motivo: "unica annata" } : { motivo: "piu annate" };
+}
+
+// Second chance when no card's name matches: the card's name was written from front and back,
+// the customer photographs the front ("The Original" for "The Original 10 Anni", "Terlan" for
+// "Cantina Terlano"). The bottle is the one whose front label prints every word of the name
+// read in the photo, if exactly one wine in the shop does and one of those words is rare.
+function dalFronte(voci: Voce[], lettura: Lettura, principale: Set<string>, visto: Set<string>): { voce?: Voce; motivo: string } {
+  const chiave = [...principale];
+  if (!chiave.length) return { motivo: "nessuno" };
+  const frequenza = new Map<string, number>();
+  for (const v of voci) for (const p of new Set([...(v.fronte || []), ...v.parole])) frequenza.set(p, (frequenza.get(p) || 0) + 1);
+  if (!chiave.some((p) => (frequenza.get(p) || 0) > 0 && (frequenza.get(p) || 0) <= RARA)) return { motivo: "nessuno" };
+  const trovate = voci.filter(
+    (v) =>
+      v.fronte?.length &&
+      chiave.every((p) => v.fronte!.includes(p) || v.parole.includes(p)) &&
+      // a colour its front prints and the photo doesn't show: the sibling, not this one
+      !v.fronte.some((p) => COLORE.has(p) && !visto.has(p))
+  );
+  if (!trovate.length) return { motivo: "nessuno" };
+  const firma = (v: Voce) => [...v.parole].sort().join(" ");
+  if (new Set(trovate.map(firma)).size > 1) return { motivo: `fronte ambiguo: ${trovate.map((v) => v.id).join(", ")}` };
+  const letto = anno(lettura.annata);
+  if (letto) {
+    const giusta = trovate.find((v) => anno(v.annata) === letto);
+    return giusta ? { voce: giusta, motivo: "fronte, annata" } : { motivo: `annata ${letto} non in catalogo` };
+  }
+  return trovate.length === 1 ? { voce: trovate[0], motivo: "fronte, unica annata" } : { motivo: "piu annate" };
 }
 
 // The card's own doubts, in plain words. A customer must not read as certain a fact the
