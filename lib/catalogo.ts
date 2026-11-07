@@ -123,6 +123,14 @@ function senzaDatiIncerti(dubbi: string, annataLetta: string) {
 let cache: { voci: Voce[]; scade: number } | null = null;
 const CACHE_MS = 5 * 60 * 1000;
 
+const voce = (r: Record<string, unknown>): Voce => ({
+  id: r.id as string,
+  nome_vino: r.nome_vino as string,
+  produttore: (r.produttore as string) || "",
+  annata: (r.annata as string) || "",
+  parole: [...new Set(parole(`${r.nome_vino} ${r.produttore}`))],
+});
+
 async function voci(): Promise<Voce[]> {
   if (cache && cache.scade > Date.now()) return cache.voci;
   await ensureSchema();
@@ -132,15 +140,18 @@ async function voci(): Promise<Voce[]> {
     SELECT id, nome_vino, produttore, annata FROM wine_scans w
     WHERE origine = 'magazzino' AND confidenza IN ('alta', 'media') AND COALESCE(annata, '') <> ''
       AND EXISTS (SELECT 1 FROM stock_items s WHERE s.scheda_id = w.id AND s.scheda IS NOT NULL AND s.eliminato_il IS NULL)`;
-  const lista = rows.map((r) => ({
-    id: r.id as string,
-    nome_vino: r.nome_vino as string,
-    produttore: (r.produttore as string) || "",
-    annata: (r.annata as string) || "",
-    parole: [...new Set(parole(`${r.nome_vino} ${r.produttore}`))],
-  }));
-  cache = { voci: lista, scade: Date.now() + CACHE_MS };
-  return lista;
+  cache = { voci: rows.map(voce), scade: Date.now() + CACHE_MS };
+  return cache.voci;
+}
+
+// Drafts: cards a full scan wrote for a bottle not in the warehouse, sure of the bottle and
+// not reported wrong. Read fresh on every miss, never cached: each server function keeps its
+// own memory, so a new or reported draft must count from the very next scan.
+async function bozze(): Promise<Voce[]> {
+  const rows = await sql`
+    SELECT id, nome_vino, produttore, annata FROM wine_scans
+    WHERE origine = 'scan' AND lang = 'it' AND confidenza = 'alta' AND COALESCE(annata, '') <> ''`;
+  return rows.map(voce);
 }
 
 async function leggi(imageBase64: string): Promise<Lettura> {
@@ -168,13 +179,15 @@ export async function schedaDalCatalogo(imageBase64: string) {
   const inizio = Date.now();
   try {
     const [lista, lettura] = await Promise.all([voci(), leggi(imageBase64)]);
-    const { voce, motivo } = cerca(lista, lettura);
+    // The warehouse first: a draft only answers for a bottle the shop's cards don't know.
+    let { voce, motivo } = cerca(lista, lettura);
+    if (!voce) ({ voce, motivo } = cerca(await bozze(), lettura));
     console.log("[catalogo]", voce ? "trovato" : "non trovato", "|", voce?.id ?? motivo, "|", Date.now() - inizio, "ms");
     if (!voce) return null;
     const rows = await sql`
       SELECT nome_vino, produttore, annata, regione, paese, denominazione, vitigni, gradazione,
              temperatura_servizio, note_visive, note_olfattive, note_gustative, abbinamenti, descrizione, confidenza, dubbi,
-             testo_etichetta, verificati, bottle_image
+             testo_etichetta, verificati, bottle_image, origine
       FROM wine_scans WHERE id = ${voce.id}`;
     if (!rows[0]) return null;
     const { dubbi, testo_etichetta, verificati, ...scheda } = rows[0];
@@ -184,7 +197,7 @@ export async function schedaDalCatalogo(imageBase64: string) {
       Object.entries(senzaDatiIncerti((dubbi as string) || "", lettura.annata)).filter(([campo]) => !(campo in certi))
     );
     const vitigni = "vitigni" in certi ? scheda.vitigni : vitigniInEtichetta(scheda.vitigni, `${testo_etichetta || ""} ${lettura.testo}`);
-    return { ...scheda, vitigni, ...incerti, catalogo_id: voce.id, testo_etichetta: lettura.testo };
+    return { ...scheda, vitigni, ...incerti, origine: scheda.origine as string, catalogo_id: voce.id, testo_etichetta: lettura.testo };
   } catch (error) {
     console.error("[catalogo] passo allo scan completo:", error);
     return null;

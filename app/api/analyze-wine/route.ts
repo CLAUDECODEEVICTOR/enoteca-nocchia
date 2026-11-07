@@ -93,7 +93,8 @@ export async function POST(req: NextRequest) {
     if (lang === "it") {
       const scheda = await schedaDalCatalogo(imageBase64);
       if (scheda) {
-        return NextResponse.json({ it: scheda }, { headers: { "x-fonte": "catalogo" } });
+        const { origine, ...it } = scheda;
+        return NextResponse.json({ it }, { headers: { "x-fonte": origine === "scan" ? "bozza" : "catalogo" } });
       }
     }
 

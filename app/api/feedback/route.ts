@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sql, ensureFeedbackSchema } from "@/lib/db";
+import { sql, ensureFeedbackSchema, wineKey } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { requireScope } from "@/lib/auth";
 
@@ -64,6 +64,14 @@ export async function POST(req: NextRequest) {
         ${lang}
       );
     `;
+
+    // A draft a customer calls wrong is not offered again: the next scan writes the card anew.
+    // Warehouse cards are left to the staff, who read the feedback.
+    if (!body.isCorrect) {
+      const risposta = body.aiResponse as { it?: { catalogo_id?: string }; en?: { catalogo_id?: string } } | undefined;
+      const scheda = risposta?.it?.catalogo_id || risposta?.en?.catalogo_id || wineKey(body.wineName || "", body.producer || "", body.vintage || "");
+      if (scheda) await sql`UPDATE wine_scans SET confidenza = 'da_correggere' WHERE id = ${scheda} AND origine = 'scan'`;
+    }
 
     return NextResponse.json({ ok: true, id });
   } catch (error) {

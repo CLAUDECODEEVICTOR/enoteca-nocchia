@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     if (!Number.isFinite(ms) || ms <= 0 || ms > 300_000) {
       return NextResponse.json({ error: "Tempo non valido" }, { status: 400 });
     }
-    const fonte = b?.fonte === "catalogo" ? "catalogo" : "completo";
+    const fonte = ["catalogo", "bozza"].includes(b?.fonte) ? b.fonte : "completo";
     const lang = b?.lang === "en" ? "en" : "it";
     const vino = typeof b?.vino === "string" ? b.vino.slice(0, 200) : null;
     const dopo = (v: unknown) => {

@@ -20,8 +20,12 @@ interface ScanPayload {
   descrizione?: string;
   bottleImage?: string | null;
   catalogo_id?: string;
+  testo_etichetta?: string;
+  confidenza?: string;
   lang?: "it" | "en";
 }
+
+const RISCRIVI = "wine_scans.verificati IS NULL AND (wine_scans.origine IS NULL OR (wine_scans.origine = 'scan' AND (wine_scans.confidenza IS DISTINCT FROM 'alta' OR (wine_scans.lang = 'en' AND EXCLUDED.lang = 'it'))))";
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,7 +51,7 @@ export async function POST(req: NextRequest) {
         UPDATE wine_scans SET
           scan_count = scan_count + 1, last_scanned_at = NOW(),
           bottle_image = COALESCE(bottle_image, ${body.bottleImage || null}::text)
-        WHERE id = ${body.catalogo_id} AND origine = 'magazzino'`;
+        WHERE id = ${body.catalogo_id} AND origine IN ('magazzino', 'scan')`;
       return NextResponse.json({ ok: true, id: body.catalogo_id });
     }
 
@@ -58,12 +62,18 @@ export async function POST(req: NextRequest) {
 
     const lang = body.lang === "en" ? "en" : "it";
 
-    // Upsert: if row exists, increment scan_count and update last_scanned_at
+    const confidenza = ["alta", "media", "bassa"].includes(body.confidenza || "") ? body.confidenza : null;
+
+    // A card written by a full scan is kept as a draft ('scan') that the next scan of the
+    // same bottle reuses. Rewritten from this scan: a card saved before drafts existed
+    // (origine NULL), a draft a customer reported wrong, an English draft now scanned in
+    // Italian. Warehouse cards, good drafts and cards corrected with a source only get counted.
     await sql`
       INSERT INTO wine_scans (
         id, nome_vino, produttore, annata, regione, paese, denominazione,
         vitigni, gradazione, temperatura_servizio, note_visive, note_olfattive,
-        note_gustative, abbinamenti, descrizione, bottle_image, lang
+        note_gustative, abbinamenti, descrizione, bottle_image, lang,
+        origine, confidenza, testo_etichetta
       )
       VALUES (
         ${id},
@@ -82,12 +92,16 @@ export async function POST(req: NextRequest) {
         ${JSON.stringify(body.abbinamenti || [])}::jsonb,
         ${body.descrizione || null},
         ${body.bottleImage || null},
-        ${lang}
+        ${lang},
+        'scan',
+        ${confidenza},
+        ${(body.testo_etichetta || "").slice(0, 4000) || null}
       )
       ON CONFLICT (id) DO UPDATE SET
         scan_count = wine_scans.scan_count + 1,
         last_scanned_at = NOW(),
-        bottle_image = COALESCE(EXCLUDED.bottle_image, wine_scans.bottle_image);
+        bottle_image = COALESCE(wine_scans.bottle_image, EXCLUDED.bottle_image),
+        ${sql.unsafe(["regione", "paese", "denominazione", "vitigni", "gradazione", "temperatura_servizio", "note_visive", "note_olfattive", "note_gustative", "abbinamenti", "descrizione", "lang", "origine", "confidenza", "testo_etichetta"].map((c) => `${c} = CASE WHEN ${RISCRIVI} THEN EXCLUDED.${c} ELSE wine_scans.${c} END`).join(",\n        "))};
     `;
 
     return NextResponse.json({ ok: true, id });
