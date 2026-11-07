@@ -151,6 +151,9 @@ export function ensureTempiSchema(): Promise<void> {
           vino TEXT
         );
       `;
+      // ms runs from the tap on Analizza to the answer; ms_scheda to the card on screen,
+      // ms_foto to the bottle photo on screen (null when no photo came).
+      await sql`ALTER TABLE scan_tempi ADD COLUMN IF NOT EXISTS ms_scheda INTEGER, ADD COLUMN IF NOT EXISTS ms_foto INTEGER`;
     })().catch((e) => {
       tempiSchemaReady = null;
       throw e;

@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       await sql`
         UPDATE wine_scans SET
           scan_count = scan_count + 1, last_scanned_at = NOW(),
-          bottle_image = COALESCE(${body.bottleImage || null}::text, bottle_image)
+          bottle_image = COALESCE(bottle_image, ${body.bottleImage || null}::text)
         WHERE id = ${body.catalogo_id} AND origine = 'magazzino'`;
       return NextResponse.json({ ok: true, id: body.catalogo_id });
     }

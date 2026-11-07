@@ -174,7 +174,7 @@ export async function schedaDalCatalogo(imageBase64: string) {
     const rows = await sql`
       SELECT nome_vino, produttore, annata, regione, paese, denominazione, vitigni, gradazione,
              temperatura_servizio, note_visive, note_olfattive, note_gustative, abbinamenti, descrizione, confidenza, dubbi,
-             testo_etichetta, verificati
+             testo_etichetta, verificati, bottle_image
       FROM wine_scans WHERE id = ${voce.id}`;
     if (!rows[0]) return null;
     const { dubbi, testo_etichetta, verificati, ...scheda } = rows[0];

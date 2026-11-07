@@ -9,6 +9,7 @@ import LanguageToggle from "@/components/LanguageToggle";
 import FeedbackPanel from "@/components/FeedbackPanel";
 import { IconWineGlass } from "@/components/Icons";
 import "@/lib/i18n";
+import * as cronometro from "@/lib/cronometro";
 
 // Fire-and-forget save to Neon DB. Never blocks UI or throws to caller.
 function saveScan(
@@ -60,6 +61,7 @@ export default function ResultPage() {
       return;
     }
     setBilingualWine(parsed);
+    cronometro.schedaVisibile();
 
     const wineData = parsed.it || parsed.en;
     const validWine =
@@ -69,8 +71,9 @@ export default function ResultPage() {
     const savedKey = `scan_saved_${wineData?.nome_vino}_${wineData?.annata}`;
     const alreadySaved = sessionStorage.getItem(savedKey) === "1";
 
-    // Check cached image first
-    const cachedImg = localStorage.getItem("wineBottleImage");
+    // A catalogue card brings the photo found on its first scan: no new search.
+    const cachedImg = localStorage.getItem("wineBottleImage") || wineData?.bottle_image || null;
+    if (!validWine) cronometro.fotoVisibile(false);
     if (cachedImg) {
       setBottleImage(cachedImg);
       if (validWine && !alreadySaved) {
@@ -90,6 +93,8 @@ export default function ResultPage() {
           if (img) {
             localStorage.setItem("wineBottleImage", img);
             setBottleImage(img);
+          } else {
+            cronometro.fotoVisibile(false);
           }
           if (!alreadySaved) {
             saveScan(wineData, img, i18n.language);
@@ -97,6 +102,7 @@ export default function ResultPage() {
           }
         })
         .catch(() => {
+          cronometro.fotoVisibile(false);
           // Save anyway without image
           if (!alreadySaved) {
             saveScan(wineData, null, i18n.language);
@@ -177,7 +183,11 @@ export default function ResultPage() {
             alt={wine.nome_vino}
             className="object-contain drop-shadow-xl rounded-2xl"
             style={{ maxHeight: "340px", maxWidth: "260px", width: "auto", height: "auto" }}
-            onError={() => setBottleImage(null)}
+            onLoad={() => cronometro.fotoVisibile(true)}
+            onError={() => {
+              cronometro.fotoVisibile(false);
+              setBottleImage(null);
+            }}
           />
         </div>
       )}

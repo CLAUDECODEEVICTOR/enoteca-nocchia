@@ -7,6 +7,7 @@ import CameraStream from "@/components/CameraStream";
 import LoadingWine from "@/components/LoadingWine";
 import LanguageToggle from "@/components/LanguageToggle";
 import "@/lib/i18n";
+import * as cronometro from "@/lib/cronometro";
 
 export default function ScanPage() {
   const { t, i18n } = useTranslation();
@@ -48,6 +49,7 @@ export default function ScanPage() {
   const handleAnalyze = async () => {
     if (!capturedImage) return;
     setIsAnalyzing(true);
+    cronometro.avvia();
 
     // Persist a thumbnail in sessionStorage so the feedback panel on /result can attach it.
     try {
@@ -61,7 +63,6 @@ export default function ScanPage() {
     // works with, so the photo goes up as-is. Re-encoding it here would only
     // throw away label detail a second time.
     const uploadImage = capturedImage;
-    const inizio = performance.now();
 
     try {
       const res = await fetch("/api/analyze-wine", {
@@ -78,19 +79,12 @@ export default function ScanPage() {
 
       const data = await res.json();
       if (res.ok) {
-        // The stopwatch must never get in the customer's way: no await, errors ignored.
         const scheda = data.it || data.en;
-        fetch("/api/tempi", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          keepalive: true,
-          body: JSON.stringify({
-            fonte: res.headers.get("x-fonte") || "completo",
-            ms: Math.round(performance.now() - inizio),
-            lang: data.it ? "it" : "en",
-            vino: [scheda?.nome_vino, scheda?.produttore, scheda?.annata].filter(Boolean).join(" "),
-          }),
-        }).catch(() => {});
+        cronometro.rispostaArrivata({
+          fonte: res.headers.get("x-fonte") || "completo",
+          lang: data.it ? "it" : "en",
+          vino: [scheda?.nome_vino, scheda?.produttore, scheda?.annata].filter(Boolean).join(" "),
+        });
       }
       let bilingualData = null;
 

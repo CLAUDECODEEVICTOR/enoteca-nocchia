@@ -15,6 +15,16 @@ function isValidImageUrl(url: string): boolean {
   }
 }
 
+async function apre(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(url, { headers: { Range: "bytes=0-1023" }, signal: AbortSignal.timeout(2500) });
+    res.body?.cancel().catch(() => {});
+    return res.ok && (res.headers.get("content-type") || "").startsWith("image/");
+  } catch {
+    return false;
+  }
+}
+
 async function searchBingImages(query: string, preferPng = false): Promise<string | null> {
   try {
     const url = `https://www.bing.com/images/search?q=${encodeURIComponent(query)}&form=HDRSC3&first=1&qft=+filterui:photo-transparent`;
@@ -47,12 +57,15 @@ async function searchBingImages(query: string, preferPng = false): Promise<strin
 
     if (candidates.length === 0) return null;
 
-    if (preferPng) {
-      const pngUrl = candidates.find(u => u.toLowerCase().endsWith(".png"));
-      if (pngUrl) return pngUrl;
+    // PNGs first, then the rest, in Bing's order.
+    const ordered = preferPng
+      ? [...candidates.filter(u => u.toLowerCase().endsWith(".png")), ...candidates.filter(u => !u.toLowerCase().endsWith(".png"))]
+      : candidates;
+    // The photo is saved on the card for good: it must open, not point to a dead site.
+    for (const u of ordered.slice(0, 4)) {
+      if (await apre(u)) return u;
     }
-
-    return candidates[0];
+    return null;
   } catch {
     return null;
   }

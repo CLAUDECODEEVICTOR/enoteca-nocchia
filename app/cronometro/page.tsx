@@ -11,6 +11,10 @@ interface Riga {
   mediana: number;
   media: number;
   massimo: number;
+  mediana_risposta: number | null;
+  mediana_scheda: number | null;
+  mediana_foto: number | null;
+  n_completi: number;
 }
 
 interface Scan {
@@ -18,10 +22,12 @@ interface Scan {
   created_at: string;
   fonte: string;
   ms: number;
+  ms_scheda: number | null;
+  ms_foto: number | null;
   vino: string | null;
 }
 
-const sec = (ms?: number) => (ms === undefined ? "-" : `${(ms / 1000).toFixed(1).replace(".", ",")} s`);
+const sec = (ms?: number | null) => (ms === undefined || ms === null ? "-" : `${(ms / 1000).toFixed(1).replace(".", ",")} s`);
 const cardStyle = { background: "var(--color-surface)", border: "1px solid rgba(120,94,20,0.2)" };
 
 function Tempo({ titolo, riga, forte }: { titolo: string; riga?: Riga; forte?: boolean }) {
@@ -99,6 +105,25 @@ function Cronometro() {
           )}
         </section>
 
+        <section className="grid gap-3">
+          <h2 className="text-lg font-medium">L&apos;attesa intera del cliente</h2>
+          <div className="grid sm:grid-cols-3 gap-3">
+            {[
+              ["Risposta arrivata", reali?.mediana_risposta],
+              ["Scheda sullo schermo", reali?.mediana_scheda],
+              ["Foto della bottiglia", reali?.mediana_foto],
+            ].map(([titolo, ms]) => (
+              <div key={titolo as string} className="rounded-xl p-4" style={cardStyle}>
+                <p className="text-sm" style={{ color: "var(--color-muted)" }}>{titolo}</p>
+                <p className="text-4xl font-medium my-2">{sec(ms as number | null | undefined)}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-sm" style={{ color: "var(--color-muted)" }}>
+            Tempo mediano dal tocco su Analizza. {reali?.n_completi ? `Misurato su ${reali.n_completi} scan.` : "Si misura dagli scan nuovi."}
+          </p>
+        </section>
+
         {ultimi.length > 0 && (
           <section className="grid gap-3">
             <h2 className="text-lg font-medium">Ultimi scan</h2>
@@ -106,6 +131,11 @@ function Cronometro() {
               {ultimi.map((s) => (
                 <li key={s.id} className="flex items-center gap-3 px-3 py-2 text-sm" style={{ borderTop: "1px solid rgba(120,94,20,0.12)" }}>
                   <span className="w-14 shrink-0 font-medium">{sec(s.ms)}</span>
+                  {s.ms_scheda !== null && (
+                    <span className="shrink-0 text-xs" style={{ color: "var(--color-muted)" }}>
+                      scheda {sec(s.ms_scheda)}, foto {sec(s.ms_foto)}
+                    </span>
+                  )}
                   <span className="flex-1 min-w-0 truncate">{s.vino || "Bottiglia non indicata"}</span>
                   <span className="shrink-0 text-xs" style={{ color: "var(--color-muted)" }}>
                     {s.fonte === "catalogo" ? "catalogo" : "da zero"},{" "}
