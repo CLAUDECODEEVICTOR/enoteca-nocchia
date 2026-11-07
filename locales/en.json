@@ -9,7 +9,15 @@
     "instruction": "Frame the label",
     "capture": "Capture",
     "retake": "Retake",
-    "analyze": "Analyze"
+    "analyze": "Analyze",
+    "retro_title": "The shop has some very similar bottles",
+    "retro_text": "Photograph the back label, or choose the\u00a0bottle from the list.",
+    "retro_instruction": "Frame the back label",
+    "retro_skip": "Skip",
+    "retro_list": "Choose from the list",
+    "retro_list_title": "Which bottle are you holding?",
+    "retro_none": "None of these",
+    "retro_back": "Back to the camera"
   },
   "loading": {
     "headline": "A good bottle takes patience...",

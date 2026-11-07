@@ -18,6 +18,7 @@ export interface WineAnalysis {
   // step 1. Used for feedback/debugging only; not rendered on WineCard.
   testo_etichetta?: string;
   bottle_image?: string | null;
+  foto_controllata?: boolean;
   // Set when the card came from the catalogue: the scan is counted on that card.
   catalogo_id?: string;
 }

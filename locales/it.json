@@ -9,7 +9,15 @@
     "instruction": "Inquadra l'etichetta",
     "capture": "Scatta",
     "retake": "Riprovi",
-    "analyze": "Analizza"
+    "analyze": "Analizza",
+    "retro_title": "In negozio ci sono bottiglie molto simili",
+    "retro_text": "Fotografa l'etichetta sul retro, oppure scegli la\u00a0bottiglia dall'elenco.",
+    "retro_instruction": "Inquadra l'etichetta sul retro",
+    "retro_skip": "Salta",
+    "retro_list": "Scegli dall'elenco",
+    "retro_list_title": "Quale bottiglia hai in mano?",
+    "retro_none": "Nessuna di queste",
+    "retro_back": "Torna alla fotocamera"
   },
   "loading": {
     "headline": "Una buona bottiglia richiede pazienza...",

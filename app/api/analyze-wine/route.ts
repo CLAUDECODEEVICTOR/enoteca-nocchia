@@ -3,7 +3,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { anthropicClient, buildPrompt } from "@/lib/anthropic";
 import { rateLimit } from "@/lib/rate-limit";
 import { requireScope } from "@/lib/auth";
-import { schedaDalCatalogo } from "@/lib/catalogo";
+import { schedaDalCatalogo, schedaDalRetro, riassunti, schedaScelta } from "@/lib/catalogo";
 import { vitigniInEtichetta } from "@/lib/vitigni";
 
 const MAX_BASE64_LENGTH = 10_000_000; // ~7.5MB decoded
@@ -89,12 +89,41 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // The catalogue's cards are in Italian, so an English scan writes its own.
-    if (lang === "it") {
-      const scheda = await schedaDalCatalogo(imageBase64);
+    // The back-label step: imageBase64 is the back, retro.fronte the front, retro.dubbio the
+    // shop's bottles the front could not tell apart.
+    const retro = body?.retro as { dubbio?: unknown; fronte?: unknown } | undefined;
+    const dubbio = Array.isArray(retro?.dubbio) ? retro.dubbio.filter((x): x is string => typeof x === "string").slice(0, 6) : [];
+    const fronte = typeof retro?.fronte === "string" && retro.fronte.length <= MAX_BASE64_LENGTH ? retro.fronte : null;
+    // The photo a full scan reads: always the front.
+    let foto = imageBase64;
+
+    // The customer picked the bottle from the list of those in doubt.
+    if (typeof body?.scegli === "string") {
+      const scheda = await schedaScelta(body.scegli);
       if (scheda) {
-        const { origine, ...it } = scheda;
+        const it: Record<string, unknown> = { ...scheda };
+        delete it.origine;
+        return NextResponse.json({ it }, { headers: { "x-fonte": "scelta" } });
+      }
+    }
+
+    // The catalogue's cards are in Italian, so an English scan writes its own.
+    if (lang === "it" && dubbio.length >= 2 && fronte) {
+      const scheda = await schedaDalRetro(imageBase64, dubbio);
+      if (scheda) {
+        const it: Record<string, unknown> = { ...scheda };
+        delete it.origine;
+        return NextResponse.json({ it }, { headers: { "x-fonte": "retro" } });
+      }
+      foto = fronte;
+    } else if (lang === "it" && body?.salta !== true) {
+      const trovata = await schedaDalCatalogo(imageBase64);
+      if (trovata?.scheda) {
+        const { origine, ...it } = trovata.scheda;
         return NextResponse.json({ it }, { headers: { "x-fonte": origine === "scan" ? "bozza" : "catalogo" } });
+      }
+      if (trovata?.dubbio) {
+        return NextResponse.json({ retro: { dubbio: trovata.dubbio, bottiglie: await riassunti(trovata.dubbio) } }, { headers: { "x-fonte": "chiedi-retro" } });
       }
     }
 
@@ -131,7 +160,7 @@ export async function POST(req: NextRequest) {
               source: {
                 type: "base64",
                 media_type: "image/jpeg",
-                data: imageBase64,
+                data: foto,
               },
             },
           ],

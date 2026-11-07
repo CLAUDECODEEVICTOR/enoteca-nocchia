@@ -83,6 +83,16 @@ export default function ResultPage() {
       return;
     }
 
+    // A shop card whose photo was checked and none was good: no search, no photo.
+    if (validWine && wineData?.foto_controllata) {
+      cronometro.fotoVisibile(false);
+      if (!alreadySaved) {
+        saveScan(wineData, null, i18n.language);
+        sessionStorage.setItem(savedKey, "1");
+      }
+      return;
+    }
+
     // Fetch bottle image async (doesn't block page render)
     if (validWine) {
       const q = [wineData.nome_vino, wineData.produttore, wineData.annata].filter(Boolean).join(" ");

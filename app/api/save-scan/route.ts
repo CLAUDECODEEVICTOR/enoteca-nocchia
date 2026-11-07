@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       await sql`
         UPDATE wine_scans SET
           scan_count = scan_count + 1, last_scanned_at = NOW(),
-          bottle_image = COALESCE(bottle_image, ${body.bottleImage || null}::text)
+          bottle_image = CASE WHEN foto_il IS NULL THEN COALESCE(bottle_image, ${body.bottleImage || null}::text) ELSE bottle_image END
         WHERE id = ${body.catalogo_id} AND origine IN ('magazzino', 'scan')`;
       return NextResponse.json({ ok: true, id: body.catalogo_id });
     }
