@@ -20,6 +20,10 @@ interface Voce {
   produttore: string;
   annata: string;
   parole: string[];
+  // Words that come only from the producer's name: "Marchesi" in "Marchesi Antinori".
+  ditta?: string[];
+  // Words on the front label, as read from the warehouse photo: what a customer's photo can show.
+  fronte?: string[];
 }
 
 const LETTURA_SCHEMA = {
@@ -52,6 +56,10 @@ const parole = (s: string | null | undefined) =>
 
 const anno = (s: string) => s.match(/(19|20)\d\d/)?.[0] ?? null;
 
+// Words that tell a wine from its sibling of another colour: "Cordon Bleu Brut" and
+// "Cordon Bleu Brut Rosé" differ only by one of these.
+const COLORE = new Set(["rose", "rosato", "rosado", "blanc", "blancs", "bianco", "rosso", "noir", "noirs", "nero"]);
+
 const SOGLIA = 0.8;
 const MARGINE = 0.15;
 
@@ -68,27 +76,47 @@ export function cerca(voci: Voce[], lettura: Lettura): { voce?: Voce; motivo: st
   const principale = new Set(parole(`${lettura.nome_vino} ${lettura.produttore}`));
   const nominate = parole(lettura.nome_vino);
 
-  const candidate: { v: Voce; preso: number }[] = [];
+  const candidate: { v: Voce; preso: number; manca: number }[] = [];
   for (const v of voci) {
     if (!v.parole.length) continue;
-    const tutto = somma(v.parole);
-    const preso = somma(v.parole.filter((p) => visto.has(p)));
+    // One word of the producer in the photo is enough: "Antinori" stands for "Marchesi Antinori".
+    const ditta = v.ditta?.some((p) => visto.has(p)) ? new Set(v.ditta.filter((p) => !visto.has(p))) : new Set<string>();
+    const sue = v.parole.filter((p) => !ditta.has(p));
+    const tutto = somma(sue);
+    const preso = somma(sue.filter((p) => visto.has(p)));
     if (preso / tutto < SOGLIA) continue;
-    // Words seen only in the fine print may belong to the bottles next to it on the shelf.
-    if (somma(v.parole.filter((p) => principale.has(p))) / tutto < 0.5) continue;
-    // "Maximum Rosé" must not settle for "Maximum": a word that names other wines has to be on this one.
-    if (nominate.some((p) => !v.parole.includes(p) && frequenza.has(p))) continue;
-    candidate.push({ v, preso });
+    // Words seen only in the fine print may belong to the bottles next to it on the shelf,
+    // unless this bottle's own front label prints them ("Grattamacco ... Bolgheri Superiore").
+    if (somma(sue.filter((p) => principale.has(p) || (visto.has(p) && v.fronte?.includes(p)))) / tutto < 0.5) continue;
+    // "Maximum Rosé" must not settle for "Maximum": a word that names other wines has to be on
+    // this one, in its name or on its front label ("Nozzole Chianti Classico").
+    if (nominate.some((p) => !v.parole.includes(p) && frequenza.has(p) && !v.fronte?.includes(p))) continue;
+    candidate.push({ v, preso, manca: tutto - preso });
   }
   if (!candidate.length) return { motivo: "nessuno" };
 
-  candidate.sort((a, b) => b.preso - a.preso);
+  // On a tie, the card with fewer words the photo doesn't show: "Brut" over "Brut Rosé".
+  candidate.sort((a, b) => b.preso - a.preso || a.manca - b.manca);
   const prima = candidate[0];
   // A candidate whose words are all inside the winner's is the same wine or a less precise name.
   const rivale = candidate.find(
     (c) => !c.v.parole.every((p) => prima.v.parole.includes(p)) && c.preso >= prima.preso * (1 - MARGINE)
   );
   if (rivale) return { motivo: `ambiguo con ${rivale.v.id}` };
+  // A sibling with the same name plus a colour the photo doesn't show, and whose own front
+  // label doesn't print it either (Cuvée Prestige Rosé): the text can't tell them apart, the
+  // full scan sees the colour.
+  const sorella = voci.find(
+    (w) =>
+      w.id !== prima.v.id &&
+      prima.v.parole.every((p) => w.parole.includes(p)) &&
+      w.parole.some((p) => COLORE.has(p) && !prima.v.parole.includes(p) && !visto.has(p) && !w.fronte?.includes(p))
+  );
+  if (sorella) return { motivo: `colore ambiguo con ${sorella.id}` };
+  // A word of the winner's name printed on its front label but missing from the photo:
+  // the photo is of another bottle (an Extra Dry is not the Brut, a Nere is not the Oro).
+  const assente = prima.v.parole.find((p) => !prima.v.ditta?.includes(p) && prima.v.fronte?.includes(p) && !visto.has(p));
+  if (assente) return { motivo: `manca "${assente}" del fronte di ${prima.v.id}` };
 
   const firma = (v: Voce) => [...v.parole].sort().join(" ");
   const annate = candidate.filter((c) => firma(c.v) === firma(prima.v));
@@ -123,12 +151,15 @@ function senzaDatiIncerti(dubbi: string, annataLetta: string) {
 let cache: { voci: Voce[]; scade: number } | null = null;
 const CACHE_MS = 5 * 60 * 1000;
 
-const voce = (r: Record<string, unknown>): Voce => ({
+// Exported with cerca, for the same replay tests.
+export const voce = (r: Record<string, unknown>): Voce => ({
   id: r.id as string,
   nome_vino: r.nome_vino as string,
   produttore: (r.produttore as string) || "",
   annata: (r.annata as string) || "",
   parole: [...new Set(parole(`${r.nome_vino} ${r.produttore}`))],
+  ditta: parole(r.produttore as string).filter((p) => !parole(r.nome_vino as string).includes(p)),
+  fronte: [...new Set(parole(((r.testo_etichetta as string) || "").split(/retro\s*:/i)[0]))],
 });
 
 async function voci(): Promise<Voce[]> {
@@ -137,7 +168,7 @@ async function voci(): Promise<Voce[]> {
   await ensureStockSchema();
   // Only cards a live stock row still stands behind: correcting or deleting the row retires its card.
   const rows = await sql`
-    SELECT id, nome_vino, produttore, annata FROM wine_scans w
+    SELECT id, nome_vino, produttore, annata, testo_etichetta FROM wine_scans w
     WHERE origine = 'magazzino' AND confidenza IN ('alta', 'media') AND COALESCE(annata, '') <> ''
       AND EXISTS (SELECT 1 FROM stock_items s WHERE s.scheda_id = w.id AND s.scheda IS NOT NULL AND s.eliminato_il IS NULL)`;
   cache = { voci: rows.map(voce), scade: Date.now() + CACHE_MS };
