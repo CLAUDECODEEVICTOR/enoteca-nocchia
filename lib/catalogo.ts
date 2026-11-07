@@ -1,6 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { anthropicClient } from "@/lib/anthropic";
 import { sql, ensureSchema, ensureStockSchema } from "@/lib/db";
+import { vitigniInEtichetta } from "@/lib/vitigni";
 
 // The shop's wines already have a card, written from their front and back photos.
 // A scan only has to work out which bottle it is: reading the label and looking it
@@ -172,11 +173,18 @@ export async function schedaDalCatalogo(imageBase64: string) {
     if (!voce) return null;
     const rows = await sql`
       SELECT nome_vino, produttore, annata, regione, paese, denominazione, vitigni, gradazione,
-             temperatura_servizio, note_visive, note_olfattive, note_gustative, abbinamenti, descrizione, confidenza, dubbi
+             temperatura_servizio, note_visive, note_olfattive, note_gustative, abbinamenti, descrizione, confidenza, dubbi,
+             testo_etichetta, verificati
       FROM wine_scans WHERE id = ${voce.id}`;
     if (!rows[0]) return null;
-    const { dubbi, ...scheda } = rows[0];
-    return { ...scheda, ...senzaDatiIncerti((dubbi as string) || "", lettura.annata), catalogo_id: voce.id, testo_etichetta: lettura.testo };
+    const { dubbi, testo_etichetta, verificati, ...scheda } = rows[0];
+    // A field a person checked against a source is shown even if the card had doubts on it.
+    const certi = (verificati as Record<string, unknown> | null) || {};
+    const incerti = Object.fromEntries(
+      Object.entries(senzaDatiIncerti((dubbi as string) || "", lettura.annata)).filter(([campo]) => !(campo in certi))
+    );
+    const vitigni = "vitigni" in certi ? scheda.vitigni : vitigniInEtichetta(scheda.vitigni, `${testo_etichetta || ""} ${lettura.testo}`);
+    return { ...scheda, vitigni, ...incerti, catalogo_id: voce.id, testo_etichetta: lettura.testo };
   } catch (error) {
     console.error("[catalogo] passo allo scan completo:", error);
     return null;

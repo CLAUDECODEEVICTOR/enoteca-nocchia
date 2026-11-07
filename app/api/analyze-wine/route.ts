@@ -4,6 +4,7 @@ import { anthropicClient, buildPrompt } from "@/lib/anthropic";
 import { rateLimit } from "@/lib/rate-limit";
 import { requireScope } from "@/lib/auth";
 import { schedaDalCatalogo } from "@/lib/catalogo";
+import { vitigniInEtichetta } from "@/lib/vitigni";
 
 const MAX_BASE64_LENGTH = 10_000_000; // ~7.5MB decoded
 
@@ -191,6 +192,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    wineData.vitigni = vitigniInEtichetta(wineData.vitigni, wineData.testo_etichetta || "");
     const result = { [lang]: wineData };
 
     if (wineData.confidenza === "nulla") {

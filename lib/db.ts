@@ -56,7 +56,8 @@ export function ensureSchema(): Promise<void> {
           ADD COLUMN IF NOT EXISTS testo_etichetta TEXT,
           ADD COLUMN IF NOT EXISTS dubbi TEXT,
           ADD COLUMN IF NOT EXISTS confidenza TEXT,
-          ADD COLUMN IF NOT EXISTS abbinamenti_sito JSONB;
+          ADD COLUMN IF NOT EXISTS abbinamenti_sito JSONB,
+          ADD COLUMN IF NOT EXISTS verificati JSONB;
       `;
     })();
   }
