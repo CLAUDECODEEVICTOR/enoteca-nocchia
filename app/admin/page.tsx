@@ -8,6 +8,7 @@ const AREE = [
   { href: "/magazzino", nome: "Magazzino", testo: "Registra le bottiglie, correggi le righe, verifica le annate" },
   { href: "/archivio", nome: "Archivio", testo: "Le schede complete di tutte le bottiglie" },
   { href: "/verifica", nome: "Verifica schede", testo: "Controlla i dati delle schede con le fonti dei produttori" },
+  { href: "/foto-mancanti", nome: "Foto mancanti", testo: "Fotografa le bottiglie che non hanno ancora una foto pulita" },
   { href: "/feedback", nome: "Feedback", testo: "Le schede che i clienti hanno segnalato" },
   { href: "/cronometro", nome: "Cronometro", testo: "Quanto ci mette ogni scan" },
 ];

@@ -39,6 +39,8 @@ export default function ResultPage() {
   const [bilingualWine, setBilingualWine] = useState<BilingualWineAnalysis | null>(null);
   const [bottleImage, setBottleImage] = useState<string | null>(null);
   const [scanThumbnail, setScanThumbnail] = useState<string | null>(null);
+  // No clean bottle photo for this wine: the customer's own shot stands in, so every scan shows a bottle.
+  const [senzaFoto, setSenzaFoto] = useState(false);
 
   useEffect(() => {
     // Read the original scan photo (thumbnail) stored by /scan
@@ -86,6 +88,7 @@ export default function ResultPage() {
     // A shop card whose photo was checked and none was good: no search, no photo.
     if (validWine && wineData?.foto_controllata) {
       cronometro.fotoVisibile(false);
+      setSenzaFoto(true);
       if (!alreadySaved) {
         saveScan(wineData, null, i18n.language);
         sessionStorage.setItem(savedKey, "1");
@@ -105,6 +108,7 @@ export default function ResultPage() {
             setBottleImage(img);
           } else {
             cronometro.fotoVisibile(false);
+            setSenzaFoto(true);
           }
           if (!alreadySaved) {
             saveScan(wineData, img, i18n.language);
@@ -113,6 +117,7 @@ export default function ResultPage() {
         })
         .catch(() => {
           cronometro.fotoVisibile(false);
+          setSenzaFoto(true);
           // Save anyway without image
           if (!alreadySaved) {
             saveScan(wineData, null, i18n.language);
@@ -197,9 +202,23 @@ export default function ResultPage() {
             onError={() => {
               cronometro.fotoVisibile(false);
               setBottleImage(null);
+              setSenzaFoto(true);
             }}
           />
         </div>
+      )}
+
+      {!bottleImage && senzaFoto && scanThumbnail && (
+        <figure className="flex flex-col items-center gap-2 pt-8 pb-4 m-0 animate-fade-in-1">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={scanThumbnail.startsWith("data:") ? scanThumbnail : `data:image/jpeg;base64,${scanThumbnail}`}
+            alt={wine.nome_vino}
+            className="object-contain rounded-2xl shadow-lg"
+            style={{ maxHeight: "340px", maxWidth: "260px", width: "auto", height: "auto" }}
+          />
+          <figcaption className="text-sm" style={{ color: "var(--color-muted)" }}>{t("result.your_photo")}</figcaption>
+        </figure>
       )}
 
       <div className="px-5 md:px-8 lg:px-12 py-6 md:py-8" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.5rem)" }}>
