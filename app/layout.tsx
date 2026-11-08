@@ -44,7 +44,8 @@ export default function RootLayout({
     <html lang="it" className={`${playfair.variable} ${dmSans.variable}`}>
       <head>
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </head>
       <body className="min-h-dvh bg-[var(--color-bg)] text-[var(--color-text)] font-[var(--font-dm-sans)] antialiased">
         <noscript>

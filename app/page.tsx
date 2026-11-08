@@ -22,7 +22,7 @@ export default function HomePage() {
         <img
           src="/icons/icon-192.png"
           alt="Enoteca Nocchia"
-          className="w-20 h-20 md:w-24 md:h-24 rounded-2xl animate-fade-in-1 shadow-lg"
+          className="w-20 h-20 md:w-24 md:h-24 rounded-2xl animate-fade-in-1 shadow-md ring-1 ring-black/5"
         />
 
         {/* Titolo */}
