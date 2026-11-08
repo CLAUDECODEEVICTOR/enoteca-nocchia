@@ -9,8 +9,9 @@ import { sql, ensureSommelierSchema } from "@/lib/db";
 
 export const maxDuration = 30;
 
-// Rossana, a warm Italian conversational voice from the ElevenLabs library (to confirm with the shop).
-const VOCE = "MuTiG4dbrEGYEy3XP4iP";
+// A native voice per language, from the ElevenLabs library: Rossana, warm Italian conversational;
+// Hope, natural, clear and calm American English, easy for tourists who are not native speakers.
+const VOCI = { it: "MuTiG4dbrEGYEy3XP4iP", en: "OYTbf65OHHFELVut7v2H" } as const;
 const MODELLO = "eleven_v4";
 const DOLLARI_PER_MILLE = 0.08; // eleven_v4, official API price per 1000 characters
 // Without a PIN, a ceiling per day keeps a leaked link from emptying the monthly credits.
@@ -83,7 +84,7 @@ export async function GET(req: NextRequest) {
     const testo = testi ? daLeggere(testi, n) : "";
     if (!testi || !testo) return NextResponse.json({ error: "Consiglio non trovato" }, { status: 404 });
 
-    const audio = await client.textToSpeech.stream(VOCE, {
+    const audio = await client.textToSpeech.stream(VOCI[testi.lang] ?? VOCI.it, {
       text: testo,
       modelId: MODELLO,
       languageCode: testi.lang,
