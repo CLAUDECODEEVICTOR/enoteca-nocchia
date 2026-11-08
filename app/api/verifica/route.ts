@@ -100,13 +100,17 @@ export async function POST(req: NextRequest) {
       nuovi[campo] = dopo;
     }
 
+    // A corrected text makes its English version stale: scripts/traduci-schede.mjs writes it again.
+    const tradotti = ["temperatura_servizio", "abbinamenti", "descrizione"];
+    const azzeraInglese = tradotti.some((c) => JSON.stringify(nuovi[c]) !== JSON.stringify(r[c]));
     await sql`
       UPDATE wine_scans SET
         produttore = ${nuovi.produttore}, annata = ${nuovi.annata}, denominazione = ${nuovi.denominazione},
         vitigni = ${JSON.stringify(nuovi.vitigni)}::jsonb, gradazione = ${nuovi.gradazione},
         temperatura_servizio = ${nuovi.temperatura_servizio}, abbinamenti = ${JSON.stringify(nuovi.abbinamenti)}::jsonb,
         descrizione = ${nuovi.descrizione}, verificati = ${JSON.stringify(verificati)}::jsonb,
-        verificata_da = ${chi}, verificata_il = ${il}
+        verificata_da = ${chi}, verificata_il = ${il},
+        en = CASE WHEN ${azzeraInglese} THEN NULL ELSE en END
       WHERE id = ${id}`;
     return NextResponse.json({ ok: true });
   } catch (error) {

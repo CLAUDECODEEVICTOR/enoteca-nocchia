@@ -63,7 +63,8 @@ export function ensureSchema(): Promise<void> {
           ADD COLUMN IF NOT EXISTS foto_il TIMESTAMPTZ,
           ADD COLUMN IF NOT EXISTS verificata_da TEXT,
           ADD COLUMN IF NOT EXISTS verificata_il TIMESTAMPTZ,
-          ADD COLUMN IF NOT EXISTS etichette JSONB;
+          ADD COLUMN IF NOT EXISTS etichette JSONB,
+          ADD COLUMN IF NOT EXISTS en JSONB;
       `;
       // What the automatic check against producers' sources found, field by field, per card.
       await sql`

@@ -243,10 +243,10 @@ async function componi(id: string, lettura: Lettura) {
   const rows = await sql`
     SELECT nome_vino, produttore, annata, regione, paese, denominazione, vitigni, gradazione,
            temperatura_servizio, note_visive, note_olfattive, note_gustative, abbinamenti, descrizione, confidenza, dubbi,
-           testo_etichetta, verificati, bottle_image, origine, foto_il
+           testo_etichetta, verificati, bottle_image, origine, foto_il, en
     FROM wine_scans WHERE id = ${id}`;
   if (!rows[0]) return null;
-  const { dubbi, testo_etichetta, verificati, foto_il, ...scheda } = rows[0];
+  const { dubbi, testo_etichetta, verificati, foto_il, en, ...scheda } = rows[0];
   // A field a person checked against a source is shown even if the card had doubts on it.
   const certi = (verificati as Record<string, unknown> | null) || {};
   const incerti = Object.fromEntries(
@@ -254,7 +254,25 @@ async function componi(id: string, lettura: Lettura) {
   );
   const vitigni = "vitigni" in certi ? scheda.vitigni : vitigniInEtichetta(scheda.vitigni, `${testo_etichetta || ""} ${lettura.testo}`);
   // foto_controllata: the photo (or its absence) was checked once; the scan must not search another.
-  return { ...scheda, vitigni, ...incerti, origine: scheda.origine as string, foto_controllata: !!foto_il, catalogo_id: id, testo_etichetta: lettura.testo };
+  return { ...scheda, vitigni, ...incerti, origine: scheda.origine as string, foto_controllata: !!foto_il, catalogo_id: id, testo_etichetta: lettura.testo, inglese: (en as Record<string, unknown> | null) || null };
+}
+
+// The fields written once in English by scripts/traduci-schede.mjs: the descriptive texts only.
+// Names, producers, appellations, grapes and numbers stay as on the label.
+export const CAMPI_INGLESI = ["regione", "paese", "temperatura_servizio", "note_visive", "note_olfattive", "note_gustative", "abbinamenti", "descrizione"] as const;
+
+// The card as the result page wants it: { it } always, { en } when the English texts exist.
+// A field emptied in Italian (hidden or missing) stays empty in English too.
+export function perLingue(scheda: Record<string, unknown>) {
+  const { origine, inglese, ...it } = scheda as Record<string, unknown> & { inglese?: Record<string, unknown> | null };
+  void origine;
+  if (!inglese) return { it };
+  const en: Record<string, unknown> = { ...it };
+  for (const campo of CAMPI_INGLESI) {
+    const vuoto = it[campo] == null || it[campo] === "" || (Array.isArray(it[campo]) && !(it[campo] as unknown[]).length);
+    if (!vuoto && inglese[campo] != null) en[campo] = inglese[campo];
+  }
+  return { it, en };
 }
 
 // The card for this photo if it's a wine of the shop; or the shop's bottles it could be, when

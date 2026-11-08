@@ -3,7 +3,7 @@ import { requireScope } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { sql, ensureSommelierSchema } from "@/lib/db";
 import { consiglia } from "@/lib/sommelier";
-import { schedaScelta } from "@/lib/catalogo";
+import { schedaScelta, perLingue } from "@/lib/catalogo";
 
 export const maxDuration = 30;
 
@@ -58,9 +58,7 @@ export async function GET(req: NextRequest) {
   try {
     const scheda = id ? await schedaScelta(id) : null;
     if (!scheda) return NextResponse.json({ error: "Scheda non trovata" }, { status: 404 });
-    const it: Record<string, unknown> = { ...scheda };
-    delete it.origine;
-    return NextResponse.json({ it });
+    return NextResponse.json(perLingue(scheda));
   } catch (error) {
     console.error("[sommelier:scheda]", error);
     return NextResponse.json({ error: "Scheda non caricata" }, { status: 500 });
