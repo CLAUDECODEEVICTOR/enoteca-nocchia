@@ -52,7 +52,8 @@
     "back": "Indietro",
     "why_label": "Perché te la consigliamo",
     "ask_counter": "Ti piace? Chiedila al banco: te la prendiamo noi.",
-    "back_advice": "Torna ai consigli"
+    "back_advice": "Torna ai consigli",
+    "go_home": "Torna all’inizio"
   },
   "error": {
     "not_recognized": "Non riesco a leggere questa etichetta",

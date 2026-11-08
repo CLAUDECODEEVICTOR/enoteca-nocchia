@@ -166,7 +166,16 @@ export default function ResultPage() {
     }
   }, [router, i18n.language]);
 
-  if (!bilingualWine) return null;
+  // No bottle chosen yet (opened directly, or after the reset): the brand and a way home, never a blank page.
+  if (!bilingualWine)
+    return (
+      <div className="min-h-dvh flex flex-col items-center justify-center gap-4 px-6 text-center" style={{ background: "var(--color-bg)" }}>
+        <h1 className="text-3xl font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--color-gold)" }}>Enoteca Nocchia</h1>
+        <button onClick={() => router.push("/")} className="min-h-[48px] px-5 text-base underline underline-offset-4" style={{ color: "var(--color-muted)" }}>
+          {t("result.go_home")}
+        </button>
+      </div>
+    );
 
   const lang = (i18n.language === "en" ? "en" : "it") as "it" | "en";
   const wine = bilingualWine[lang] || bilingualWine.it || bilingualWine.en;
