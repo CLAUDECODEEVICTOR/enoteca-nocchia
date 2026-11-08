@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { PIN_CLIENTI } from "./pin";
 
 // Two access levels:
 //   "app"   → customers, unlocks the scanner (PinGate on the root layout)
@@ -72,6 +73,7 @@ function tokenIsValid(scope: Scope, token: string | undefined): boolean {
 
 /** True when the request carries a valid, unexpired cookie for this scope. */
 export function isAuthorized(req: NextRequest, scope: Scope): boolean {
+  if (scope === "app" && !PIN_CLIENTI) return true;
   return tokenIsValid(scope, req.cookies.get(COOKIE_NAME[scope])?.value);
 }
 

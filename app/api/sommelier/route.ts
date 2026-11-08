@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireScope } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
-import { ensureSommelierSchema } from "@/lib/db";
+import { sql, ensureSommelierSchema } from "@/lib/db";
 import { consiglia } from "@/lib/sommelier";
 import { schedaScelta } from "@/lib/catalogo";
 
@@ -9,6 +9,8 @@ export const maxDuration = 30;
 
 const SCELTE = ["carne", "pesce", "pizza", "formaggi", "aperitivo", "regalo", "dopocena"];
 const GUSTI = ["leggero", "importante"];
+// Without a PIN, a ceiling per day keeps a leaked link from running up the bill.
+const MASSIMO_AL_GIORNO = 400;
 
 // Three bottles of the shop for what the customer is eating or celebrating.
 export async function POST(req: NextRequest) {
@@ -25,6 +27,8 @@ export async function POST(req: NextRequest) {
     const lang = b?.lang === "en" ? "en" : "it";
     if (!scelta && !testo) return NextResponse.json({ error: "Dimmi cosa mangi o per quale occasione" }, { status: 400 });
     await ensureSommelierSchema();
+    const [oggi] = await sql`SELECT COUNT(*)::int AS n FROM sommelier_consigli WHERE creato_il > date_trunc('day', NOW())`;
+    if (oggi.n >= MASSIMO_AL_GIORNO) return NextResponse.json({ error: "Il sommelier riposa: riprova domani." }, { status: 429 });
     // One JSON line per event, sent as it happens: the page shows each bottle as soon as it arrives.
     const codifica = new TextEncoder();
     const corpo = new ReadableStream({

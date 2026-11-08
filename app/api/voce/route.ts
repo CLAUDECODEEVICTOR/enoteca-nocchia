@@ -13,6 +13,8 @@ export const maxDuration = 30;
 const VOCE = "MuTiG4dbrEGYEy3XP4iP";
 const MODELLO = "eleven_v4";
 const DOLLARI_PER_MILLE = 0.08; // eleven_v4, official API price per 1000 characters
+// Without a PIN, a ceiling per day keeps a leaked link from emptying the monthly credits.
+const CARATTERI_AL_GIORNO = 30_000;
 
 const client = new ElevenLabsClient();
 
@@ -35,6 +37,8 @@ export async function GET(req: NextRequest) {
   if (!Number.isInteger(consiglio) || consiglio <= 0) return NextResponse.json({ error: "Consiglio non valido" }, { status: 400 });
   try {
     await ensureSommelierSchema();
+    const [oggi] = await sql`SELECT COALESCE(SUM(caratteri), 0)::int AS n FROM voce_usi WHERE creato_il > date_trunc('day', NOW())`;
+    if (oggi.n >= CARATTERI_AL_GIORNO) return NextResponse.json({ error: "Voce esaurita per oggi" }, { status: 429 });
     // Only fresh advice: a customer listens right after asking, not days later.
     const [riga] = await sql`SELECT testi FROM sommelier_consigli WHERE id = ${consiglio} AND creato_il > NOW() - INTERVAL '2 hours'`;
     const testi = riga?.testi as Testi | undefined;
