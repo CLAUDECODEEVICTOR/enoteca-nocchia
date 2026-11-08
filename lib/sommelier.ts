@@ -165,14 +165,20 @@ async function tagDalTesto(testo: string, cerca: ReturnType<typeof cosaCerca>) {
   return (r.usage.input_tokens * 2 + r.usage.output_tokens * 10) / 1e6;
 }
 
-export async function consiglia(r: Richiesta) {
+export type Consiglio = { id: string; nome_vino: string; produttore: string; annata: string; bottle_image: string | null; perche: string };
+export type Evento = { tipo: "intro"; testo: string } | { tipo: "consiglio"; consiglio: Consiglio } | { tipo: "fine"; ms: number };
+
+// The three bottles, in the order the model writes them: each goes out as soon as its sentence
+// is complete, so the first bottle is on screen while the others are still being written.
+// Returns false when the shop has fewer than three bottles that fit.
+export async function consiglia(r: Richiesta, invia: (e: Evento) => void): Promise<boolean> {
   const inizio = Date.now();
   const cerca = cosaCerca(r);
   let costo = 0;
   if (r.testo && !cerca.piatti.size && !cerca.occasioni.size && !cerca.tipi.size) costo += await tagDalTesto(r.testo, cerca).catch(() => 0);
   const [lista, recenti] = await Promise.all([bottiglie(), mostrateDiRecente()]);
   const scelte = candidate(lista, cerca, recenti, new Set(r.escludi || []));
-  if (scelte.length < 3) return null;
+  if (scelte.length < 3) return false;
 
   const elenco = scelte
     .map((b, i) => {
@@ -186,29 +192,54 @@ export async function consiglia(r: Richiesta) {
     r.testo && `Parole del cliente: "${r.testo.slice(0, 400)}"`,
   ].filter(Boolean).join("\n");
 
-  const risposta = await anthropicClient.messages.create({
+  const consigli: Consiglio[] = [];
+  const presi = new Set<number>();
+  let intro = false;
+  const prendi = (n: number, perche: string) => {
+    if (consigli.length >= 3 || n < 1 || n > scelte.length || presi.has(n)) return;
+    presi.add(n);
+    const b = scelte[n - 1];
+    const c = { id: b.id, nome_vino: b.nome_vino, produttore: b.produttore, annata: b.annata, bottle_image: b.bottle_image, perche };
+    consigli.push(c);
+    invia({ tipo: "consiglio", consiglio: c });
+  };
+
+  const flusso = anthropicClient.messages.stream({
     model: "claude-sonnet-5-5",
     max_tokens: 700,
     system: SISTEMA[r.lang],
     output_config: { effort: "low", format: { type: "json_schema", schema: SCHEMA } },
     messages: [{ role: "user", content: `${domanda}\n\nBottiglie in negozio:\n${elenco}` }],
   }, { timeout: 20_000, maxRetries: 1 });
-  const testo = risposta.content.find((b) => b.type === "text");
-  if (risposta.stop_reason !== "end_turn" || !testo || testo.type !== "text") throw new Error(`Consiglio interrotto: ${risposta.stop_reason}`);
-  const out = JSON.parse(testo.text) as { intro: string; consigli: { n: number; perche: string }[] };
 
-  const visti = new Set<number>();
-  const consigli = out.consigli
-    .filter((c) => c.n >= 1 && c.n <= scelte.length && !visti.has(c.n) && visti.add(c.n))
-    .slice(0, 3)
-    .map((c) => {
-      const b = scelte[c.n - 1];
-      return { id: b.id, nome_vino: b.nome_vino, produttore: b.produttore, annata: b.annata, bottle_image: b.bottle_image, perche: c.perche };
-    });
+  // The JSON arrives in pieces: a field counts once its closing quote has arrived.
+  const STRINGA = '"((?:[^"\\\\]|\\\\.)*)"';
+  let testo = "";
+  for await (const ev of flusso) {
+    if (ev.type !== "content_block_delta" || ev.delta.type !== "text_delta") continue;
+    testo += ev.delta.text;
+    if (!intro) {
+      const m = testo.match(new RegExp(`"intro"\\s*:\\s*${STRINGA}`));
+      if (m) {
+        intro = true;
+        invia({ tipo: "intro", testo: JSON.parse(`"${m[1]}"`) });
+      }
+    }
+    for (const m of testo.matchAll(new RegExp(`\\{\\s*"n"\\s*:\\s*(\\d+)\\s*,\\s*"perche"\\s*:\\s*${STRINGA}`, "g"))) {
+      prendi(Number(m[1]), JSON.parse(`"${m[2]}"`));
+    }
+  }
+  const risposta = await flusso.finalMessage();
+  if (risposta.stop_reason !== "end_turn") throw new Error(`Consiglio interrotto: ${risposta.stop_reason}`);
+  // Whatever the pieces missed, the whole reply has.
+  const out = JSON.parse(testo) as { intro: string; consigli: { n: number; perche: string }[] };
+  if (!intro) invia({ tipo: "intro", testo: out.intro });
+  for (const c of out.consigli) prendi(c.n, c.perche);
 
   const ms = Date.now() - inizio;
   costo += (risposta.usage.input_tokens * 2 + risposta.usage.output_tokens * 10) / 1e6;
   await sql`INSERT INTO sommelier_consigli (richiesta, scelte, ms, costo)
     VALUES (${JSON.stringify({ scelta: r.scelta, gusto: r.gusto, testo: r.testo, lang: r.lang })}::jsonb, ${consigli.map((c) => c.id)}, ${ms}, ${costo})`;
-  return { intro: out.intro, consigli, ms };
+  invia({ tipo: "fine", ms });
+  return true;
 }

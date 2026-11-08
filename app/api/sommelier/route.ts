@@ -25,9 +25,21 @@ export async function POST(req: NextRequest) {
     const lang = b?.lang === "en" ? "en" : "it";
     if (!scelta && !testo) return NextResponse.json({ error: "Dimmi cosa mangi o per quale occasione" }, { status: 400 });
     await ensureSommelierSchema();
-    const r = await consiglia({ scelta, gusto, testo, lang, escludi });
-    if (!r || r.consigli.length < 3) return NextResponse.json({ error: "Nessuna bottiglia adatta in negozio" }, { status: 404 });
-    return NextResponse.json(r);
+    // One JSON line per event, sent as it happens: the page shows each bottle as soon as it arrives.
+    const codifica = new TextEncoder();
+    const corpo = new ReadableStream({
+      async start(controller) {
+        const invia = (e: unknown) => controller.enqueue(codifica.encode(JSON.stringify(e) + "\n"));
+        try {
+          if (!(await consiglia({ scelta, gusto, testo, lang, escludi }, invia))) invia({ tipo: "nessuno" });
+        } catch (error) {
+          console.error("[sommelier]", error);
+          invia({ tipo: "errore" });
+        }
+        controller.close();
+      },
+    });
+    return new Response(corpo, { headers: { "Content-Type": "application/x-ndjson; charset=utf-8", "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("[sommelier]", error);
     return NextResponse.json({ error: "Consiglio non riuscito, riprova" }, { status: 500 });

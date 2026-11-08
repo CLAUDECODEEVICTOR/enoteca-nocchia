@@ -31,12 +31,18 @@ export default function SommelierPage() {
   const [intro, setIntro] = useState("");
   const [consigli, setConsigli] = useState<Consiglio[]>([]);
   const [visti, setVisti] = useState<string[]>([]);
+  // True while the advice is still being written: the missing bottles show as empty boxes.
+  const [inArrivo, setInArrivo] = useState(false);
+  const consigliRef = useRef<Consiglio[]>([]);
   const [ascolta, setAscolta] = useState(false);
   const [puoDettare, setPuoDettare] = useState(false);
   const ultima = useRef<{ scelta?: string; gusto?: string; testo?: string }>({});
   const voce = useRef<Riconoscimento | null>(null);
   const risultati = useRef<HTMLDivElement>(null);
   const lang = i18n.language.startsWith("en") ? "en" : "it";
+  useEffect(() => {
+    consigliRef.current = consigli;
+  }, [consigli]);
 
   useEffect(() => {
     const w = window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };
@@ -49,7 +55,10 @@ export default function SommelierPage() {
     ultima.current = richiesta;
     setChiediGusto(false);
     setStato("carica");
+    setInArrivo(true);
     const escludi = altri ? visti : [];
+    setIntro("");
+    setConsigli([]);
     try {
       const res = await fetch("/api/sommelier", {
         method: "POST",
@@ -57,16 +66,42 @@ export default function SommelierPage() {
         body: JSON.stringify({ ...richiesta, lang, escludi }),
       });
       if (res.status === 401) return window.location.reload();
-      if (res.status === 404) return setStato("nessuno");
-      if (!res.ok) throw new Error();
-      const d = await res.json();
-      setIntro(d.intro);
-      setConsigli(d.consigli);
-      setVisti((v) => [...(altri ? v : []), ...d.consigli.map((c: Consiglio) => c.id)]);
+      if (!res.ok || !res.body) throw new Error();
+      // One line per event: each bottle goes on screen as soon as its line arrives.
+      const lettore = res.body.getReader();
+      const decodifica = new TextDecoder();
+      let resto = "";
+      let arrivati: Consiglio[] = [];
+      let finito = false;
+      while (!finito) {
+        const { done, value } = await lettore.read();
+        if (done) break;
+        resto += decodifica.decode(value, { stream: true });
+        const righe = resto.split("\n");
+        resto = righe.pop() || "";
+        for (const riga of righe.filter(Boolean)) {
+          const e = JSON.parse(riga);
+          if (e.tipo === "intro") setIntro(e.testo);
+          if (e.tipo === "consiglio") {
+            arrivati = [...arrivati, e.consiglio];
+            setConsigli(arrivati);
+            if (arrivati.length === 1) {
+              setStato("pronto");
+              requestAnimationFrame(() => risultati.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+            }
+          }
+          if (e.tipo === "nessuno") return setStato("nessuno");
+          if (e.tipo === "errore") throw new Error();
+          if (e.tipo === "fine") finito = true;
+        }
+      }
+      if (!arrivati.length) throw new Error();
+      setVisti((v) => [...(altri ? v : []), ...arrivati.map((c) => c.id)]);
+      setInArrivo(false);
       setStato("pronto");
-      requestAnimationFrame(() => risultati.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
     } catch {
-      setStato("errore");
+      setInArrivo(false);
+      setStato((s) => (s === "pronto" && consigliRef.current.length ? "pronto" : "errore"));
     }
   };
 
@@ -217,8 +252,20 @@ export default function SommelierPage() {
                     </button>
                   </li>
                 ))}
+                {inArrivo &&
+                  Array.from({ length: Math.max(0, 3 - consigli.length) }, (_, i) => (
+                    <li key={`attesa-${i}`} aria-hidden="true" className="rounded-2xl p-4 flex gap-4 items-center animate-pulse" style={{ background: "var(--color-surface)", border: "1px solid rgba(120,94,20,0.12)" }}>
+                      <div className="w-16 h-32 shrink-0 rounded-lg" style={{ background: "rgba(120,94,20,0.08)" }} />
+                      <div className="grow grid gap-2">
+                        <div className="h-5 w-1/2 rounded" style={{ background: "rgba(120,94,20,0.1)" }} />
+                        <div className="h-4 w-1/3 rounded" style={{ background: "rgba(120,94,20,0.07)" }} />
+                        <div className="h-4 w-5/6 rounded" style={{ background: "rgba(120,94,20,0.07)" }} />
+                      </div>
+                    </li>
+                  ))}
               </ul>
-              <div className="flex items-center justify-between gap-3 mt-4 flex-wrap">
+              {inArrivo && <p className="mt-3 text-sm" style={{ color: "var(--color-gold)" }}>{t("sommelier.loading")}</p>}
+              <div className="flex items-center justify-between gap-3 mt-4 flex-wrap" style={{ visibility: inArrivo ? "hidden" : "visible" }}>
                 <p className="text-sm" style={{ color: "var(--color-muted)" }}>{t("sommelier.counter")}</p>
                 <button onClick={() => chiedi(ultima.current, true)} className="min-h-[48px] px-5 rounded-xl text-base" style={chip(false)}>
                   {t("sommelier.more")}
