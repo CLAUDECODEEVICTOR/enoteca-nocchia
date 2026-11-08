@@ -55,6 +55,8 @@ export default function SommelierPage() {
   const [visti, setVisti] = useState<string[]>([]);
   // True while the advice is still being written: the missing bottles show as empty boxes.
   const [inArrivo, setInArrivo] = useState(false);
+  // The advice is taking longer than usual: say so instead of leaving the same line on screen.
+  const [lento, setLento] = useState(false);
   const consigliRef = useRef<Consiglio[]>([]);
   // The advice id the voice reads back, and which part is playing: "tutto", a bottle number, or nothing.
   const [consiglioId, setConsiglioId] = useState<number | null>(null);
@@ -70,6 +72,17 @@ export default function SommelierPage() {
   useEffect(() => {
     consigliRef.current = consigli;
   }, [consigli]);
+
+  // While the advice loads or the voice speaks, the shop iPad must not reset itself for the next customer.
+  useEffect(() => {
+    document.body.dataset.occupato = inArrivo || parla ? "1" : "";
+  }, [inArrivo, parla]);
+
+  useEffect(() => {
+    if (!inArrivo) return;
+    const id = setTimeout(() => setLento(true), 8000);
+    return () => { clearTimeout(id); setLento(false); };
+  }, [inArrivo]);
 
   useEffect(() => {
     const w = window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };
@@ -221,6 +234,7 @@ export default function SommelierPage() {
     sessionStorage.setItem(`scan_saved_${d.it?.nome_vino}_${d.it?.annata}`, "1");
     sessionStorage.setItem("sommelier_ultimo", JSON.stringify({ scelte, stile, testo, intro, consigli, visti, consiglioId, ultima: ultima.current }));
     sessionStorage.setItem("indietro", "/sommelier");
+    sessionStorage.setItem("consiglio_perche", c.perche);
     router.push("/result");
   };
 
@@ -349,7 +363,7 @@ export default function SommelierPage() {
               {intro ? (
                 <p className="mt-3 text-[17px] leading-relaxed max-w-[52ch]" style={{ color: C.muto }}>{intro}</p>
               ) : (
-                inArrivo && <p className="mt-3 text-[17px] leading-relaxed" style={{ color: C.oro }} role="status">{t("sommelier.loading")}</p>
+                inArrivo && <p className="mt-3 text-[17px] leading-relaxed" style={{ color: C.oro }} role="status">{t(lento ? "sommelier.slow" : "sommelier.loading")}</p>
               )}
               {voceKo && <p className="mt-2 text-sm" style={{ color: "#c0392b" }}>{t("sommelier.voice_error")}</p>}
 
@@ -395,11 +409,15 @@ export default function SommelierPage() {
                     </li>
                   ))}
               </ol>
-              <div className="flex items-center justify-between gap-4 mt-5 flex-wrap" style={{ visibility: inArrivo ? "hidden" : "visible" }}>
-                <p className="text-sm max-w-[40ch]" style={{ color: C.muto }}>{t("sommelier.counter")}</p>
-                <button onClick={() => chiedi(ultima.current, true)} className="min-h-[48px] px-5 rounded-[12px] text-base font-medium bg-white" style={{ color: C.inchiostro, border: `1.5px solid ${C.linea}` }}>
-                  {t("sommelier.more")}
-                </button>
+              <div className="mt-6" style={{ visibility: inArrivo ? "hidden" : "visible" }}>
+                <p className="rounded-2xl px-5 py-5 text-center text-xl md:text-2xl leading-snug" style={{ background: C.crema, color: C.inchiostro, fontFamily: "var(--font-playfair)" }}>
+                  {t("sommelier.counter")}
+                </p>
+                <div className="mt-3 text-center">
+                  <button onClick={() => chiedi(ultima.current, true)} className="min-h-[48px] px-4 text-base underline underline-offset-4" style={{ color: C.muto }}>
+                    {t("sommelier.more")}
+                  </button>
+                </div>
               </div>
             </section>
           )}

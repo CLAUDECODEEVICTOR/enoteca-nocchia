@@ -49,7 +49,10 @@
       "bassa": "Low confidence",
       "nulla": "Bottle not recognized"
     },
-    "back": "Back"
+    "back": "Back",
+    "why_label": "Why we suggest it",
+    "ask_counter": "Like it? Ask at the counter and we’ll get it for you.",
+    "back_advice": "Back to the suggestions"
   },
   "error": {
     "not_recognized": "Cannot read this label",
@@ -91,8 +94,8 @@
     "loading": "Looking through the bottles in the shop…",
     "advice": "Three bottles for you",
     "open": "Open the card",
-    "more": "More suggestions",
-    "counter": "All these bottles are in the shop: ask at the counter.",
+    "more": "Three other bottles",
+    "counter": "Found the one? Ask at the counter and we’ll get it for you.",
     "error": "Advice failed: please try again.",
     "none": "No suitable bottles found: try saying it another way.",
     "back": "Back",
@@ -101,6 +104,10 @@
     "listen_one": "Listen",
     "stop": "Stop",
     "voice_error": "Voice not available right now.",
-    "searching": "Finding your bottles…"
+    "searching": "Finding your bottles…",
+    "slow": "Just a few more seconds…",
+    "idle_title": "Still there?",
+    "idle_text": "We’ll go back to the start shortly for the next customer.",
+    "idle_stay": "Continue"
   }
 }

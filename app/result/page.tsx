@@ -35,16 +35,18 @@ function saveScan(
 
 // Top left, opposite the language toggle: back to the sommelier's three bottles if the card came
 // from there, otherwise home. Read on tap, so the server render and the first paint stay the same.
+function tornaIndietro(router: ReturnType<typeof useRouter>) {
+  if (sessionStorage.getItem("indietro") === "/sommelier") {
+    sessionStorage.setItem("sommelier_torna", "1");
+    return router.push("/sommelier");
+  }
+  router.push("/");
+}
+
 function Indietro() {
   const { t } = useTranslation();
   const router = useRouter();
-  const vai = () => {
-    if (sessionStorage.getItem("indietro") === "/sommelier") {
-      sessionStorage.setItem("sommelier_torna", "1");
-      return router.push("/sommelier");
-    }
-    router.push("/");
-  };
+  const vai = () => tornaIndietro(router);
   return (
     <button
       onClick={vai}
@@ -70,11 +72,19 @@ export default function ResultPage() {
   const [scanThumbnail, setScanThumbnail] = useState<string | null>(null);
   // No clean bottle photo for this wine: the customer's own shot stands in, so every scan shows a bottle.
   const [senzaFoto, setSenzaFoto] = useState(false);
+  // Opened from the sommelier: the card shows why it was suggested and leads back to the counter,
+  // not to the scan's feedback and "analyse another bottle".
+  const [perche, setPerche] = useState<string | null>(null);
 
   useEffect(() => {
     // Read the original scan photo (thumbnail) stored by /scan
     const thumb = sessionStorage.getItem("lastScanThumbnail");
-    if (thumb) setScanThumbnail(thumb);
+    const daSommelier = sessionStorage.getItem("indietro") === "/sommelier";
+    const id = requestAnimationFrame(() => {
+      if (thumb) setScanThumbnail(thumb);
+      if (daSommelier) setPerche(sessionStorage.getItem("consiglio_perche") || "");
+    });
+    return () => cancelAnimationFrame(id);
   }, []);
 
   useEffect(() => {
@@ -254,11 +264,16 @@ export default function ResultPage() {
       <div className="px-5 md:px-8 lg:px-12 py-6 md:py-8" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.5rem)" }}>
         <div className="max-w-2xl mx-auto">
           {/* Wine Card */}
-          <WineCard wine={wine} />
+          <WineCard wine={wine} nota={perche ? (
+            <div className="rounded-xl p-4 md:p-5 bg-white" style={{ border: "1px solid rgba(62,107,42,0.3)", borderLeft: "4px solid var(--color-bordeaux)" }}>
+              <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--color-bordeaux)" }}>{t("result.why_label")}</p>
+              <p className="mt-1.5 text-base md:text-[17px] leading-relaxed" style={{ color: "var(--color-text)" }}>{perche}</p>
+            </div>
+          ) : undefined} />
 
           {/* Feedback panel — only shown when we actually have a wine identification.
               The confidenza === "nulla" branch returns earlier, so here it's never "nulla". */}
-          {wine.nome_vino && (
+          {wine.nome_vino && perche === null && (
             <FeedbackPanel
               wine={wine}
               fullResponse={bilingualWine}
@@ -267,7 +282,18 @@ export default function ResultPage() {
             />
           )}
 
-          {/* Bottone altra bottiglia */}
+          {perche !== null ? (
+            <div className="mt-8 mb-8 text-center">
+              <p className="text-lg md:text-xl" style={{ fontFamily: "var(--font-playfair)", color: "var(--color-text)" }}>{t("result.ask_counter")}</p>
+              <button
+                onClick={() => tornaIndietro(router)}
+                className="mt-4 w-full min-h-[52px] py-4 rounded-xl text-base md:text-lg font-medium"
+                style={{ background: "var(--color-bordeaux)", color: "#FFFFFF" }}
+              >
+                ← {t("result.back_advice")}
+              </button>
+            </div>
+          ) : (
           <div className="mt-8 mb-8">
             <button
               onClick={() => router.push("/")}
@@ -280,6 +306,7 @@ export default function ResultPage() {
               {t("result.another")}
             </button>
           </div>
+          )}
         </div>
       </div>
     </div>

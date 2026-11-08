@@ -49,7 +49,10 @@
       "bassa": "Analisi incerta",
       "nulla": "Bottiglia non riconosciuta"
     },
-    "back": "Indietro"
+    "back": "Indietro",
+    "why_label": "Perché te la consigliamo",
+    "ask_counter": "Ti piace? Chiedila al banco: te la prendiamo noi.",
+    "back_advice": "Torna ai consigli"
   },
   "error": {
     "not_recognized": "Non riesco a leggere questa etichetta",
@@ -91,8 +94,8 @@
     "loading": "Cerchiamo tra le bottiglie in enoteca…",
     "advice": "Tre bottiglie per voi",
     "open": "Apri la scheda",
-    "more": "Altri consigli",
-    "counter": "Le bottiglie le trovi tutte in enoteca: chiedile al banco.",
+    "more": "Altre tre bottiglie",
+    "counter": "Hai trovato quella giusta? Chiedila al banco: te la prendiamo noi.",
     "error": "Consiglio non riuscito: riprova.",
     "none": "Non ho trovato bottiglie adatte: prova a dirmelo in un altro modo.",
     "back": "Indietro",
@@ -101,6 +104,10 @@
     "listen_one": "Ascolta",
     "stop": "Ferma",
     "voice_error": "Voce non disponibile ora.",
-    "searching": "Cerco le bottiglie…"
+    "searching": "Cerco le bottiglie…",
+    "slow": "Ancora qualche secondo…",
+    "idle_title": "Sei ancora qui?",
+    "idle_text": "Tra poco si torna all’inizio per il prossimo cliente.",
+    "idle_stay": "Continua"
   }
 }

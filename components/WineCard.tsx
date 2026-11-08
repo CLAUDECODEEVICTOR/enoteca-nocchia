@@ -1,5 +1,6 @@
 "use client";
 
+import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { WineAnalysis } from "@/lib/types";
 import TastingNotes from "./TastingNotes";
@@ -8,9 +9,11 @@ import { BolloIcona, IconEye, IconNose, IconPalate, IconThermometer, IconWineGla
 
 interface WineCardProps {
   wine: WineAnalysis;
+  // Shown right under the name: why the sommelier suggested this bottle.
+  nota?: ReactNode;
 }
 
-export default function WineCard({ wine }: WineCardProps) {
+export default function WineCard({ wine, nota }: WineCardProps) {
   const { t } = useTranslation();
 
   const sections = [
@@ -172,7 +175,7 @@ export default function WineCard({ wine }: WineCardProps) {
 
   return (
     <div className="space-y-4 md:space-y-5">
-      {sections.map((section, i) => (
+      {(nota ? [sections[0], nota, ...sections.slice(1)] : sections).map((section, i) => (
         <div
           key={i}
           className="animate-stagger"
