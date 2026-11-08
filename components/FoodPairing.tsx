@@ -34,9 +34,9 @@ export default function FoodPairing({ title, pairings }: FoodPairingProps) {
             key={i}
             className="px-2.5 py-1 rounded-full text-xs md:text-sm font-medium"
             style={{
-              background: "rgba(139,26,26,0.08)",
+              background: "rgba(62,107,42,0.08)",
               color: "var(--color-bordeaux)",
-              border: "1px solid rgba(139,26,26,0.25)",
+              border: "1px solid rgba(62,107,42,0.25)",
             }}
           >
             {item}

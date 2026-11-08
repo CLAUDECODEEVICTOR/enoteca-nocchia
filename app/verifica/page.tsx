@@ -84,7 +84,7 @@ function Esito({ c }: { c?: Controllo }) {
   if (!c) return <span className="text-xs" style={{ color: "var(--color-muted)" }}>Non controllato</span>;
   const tipi: Record<string, [string, string, string]> = {
     corretto: ["giusto", "#E6EFE3", "#2F5D2A"],
-    errato: [c.gravita === "grave" ? "da correggere, grave" : "da correggere", "#F6E3E1", "#8B1A1A"],
+    errato: [c.gravita === "grave" ? "da correggere, grave" : "da correggere", "#F6E3E1", "#3E6B2A"],
     mancante: ["manca nella scheda", "#EEEEEE", "#555555"],
     non_verificabile: ["nessuna fonte trovata", "#EEEEEE", "#555555"],
     editoriale: ["consiglio, non un dato", "#F3ECDD", "#785E14"],
@@ -385,7 +385,7 @@ function Verifica() {
                       <span className="block font-medium">{v.nome_vino}</span>
                       <span className="block text-sm" style={{ color: "var(--color-muted)" }}>{[v.produttore, v.annata].filter(Boolean).join(" · ")}</span>
                     </span>
-                    <span className="text-xs text-right shrink-0" style={{ color: v.verificata_il ? "#2F5D2A" : v.errori ? "#8B1A1A" : "var(--color-muted)" }}>
+                    <span className="text-xs text-right shrink-0" style={{ color: v.verificata_il ? "#2F5D2A" : v.errori ? "#3E6B2A" : "var(--color-muted)" }}>
                       {v.verificata_il
                         ? `verificata da ${v.verificata_da}`
                         : v.errori

@@ -59,7 +59,7 @@ export default function HomePage() {
           style={{
             background: "var(--color-bordeaux)",
             color: "#FFFFFF",
-            boxShadow: "0 4px 20px rgba(139,26,26,0.2)",
+            boxShadow: "0 4px 20px rgba(62,107,42,0.2)",
           }}
         >
           {t("home.cta")}
