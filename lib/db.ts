@@ -60,7 +60,17 @@ export function ensureSchema(): Promise<void> {
           ADD COLUMN IF NOT EXISTS verificati JSONB,
           ADD COLUMN IF NOT EXISTS foto_fonte TEXT,
           ADD COLUMN IF NOT EXISTS foto_tipo TEXT,
-          ADD COLUMN IF NOT EXISTS foto_il TIMESTAMPTZ;
+          ADD COLUMN IF NOT EXISTS foto_il TIMESTAMPTZ,
+          ADD COLUMN IF NOT EXISTS verificata_da TEXT,
+          ADD COLUMN IF NOT EXISTS verificata_il TIMESTAMPTZ;
+      `;
+      // What the automatic check against producers' sources found, field by field, per card.
+      await sql`
+        CREATE TABLE IF NOT EXISTS scheda_verifiche (
+          id TEXT PRIMARY KEY,
+          creato_il TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          risultato JSONB NOT NULL
+        );
       `;
     })();
   }
