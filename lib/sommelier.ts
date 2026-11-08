@@ -218,7 +218,9 @@ export async function consiglia(r: Richiesta, invia: (e: Evento) => void): Promi
     max_tokens: 700,
     system: SISTEMA[r.lang],
     output_config: { effort: "low", format: { type: "json_schema", schema: SCHEMA } },
-    messages: [{ role: "user", content: `${domanda}\n\nBottiglie in negozio:\n${elenco}` }],
+    // The request and the cards are in Italian: without this last line the model answered
+    // English customers in Italian.
+    messages: [{ role: "user", content: `${domanda}\n\nBottiglie in negozio:\n${elenco}${r.lang === "en" ? "\n\nThe customer speaks English: write intro and every perche in English." : ""}` }],
   }, { timeout: 20_000, maxRetries: 1 });
 
   // The JSON arrives in pieces: a field counts once its closing quote has arrived.
