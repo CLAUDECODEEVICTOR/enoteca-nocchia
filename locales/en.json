@@ -11,7 +11,7 @@
     "retake": "Retake",
     "analyze": "Analyze",
     "retro_title": "The shop has some very similar bottles",
-    "retro_text": "Photograph the back label, or choose the\u00a0bottle from the list.",
+    "retro_text": "Photograph the back label, or choose the bottle from the list.",
     "retro_instruction": "Frame the back label",
     "retro_skip": "Skip",
     "retro_list": "Choose from the list",
@@ -57,5 +57,38 @@
     "camera_unavailable": "Camera unavailable. Make sure no other app is using it and try again.",
     "camera_denied": "Camera permission denied. Enable the camera in your browser settings.",
     "camera_retry": "Try again"
+  },
+  "sommelier": {
+    "cta": "Ask for advice",
+    "title": "What's on the table?",
+    "sub": "Tap a dish or an occasion, or tell us in your own words.",
+    "choices": {
+      "carne": "Meat",
+      "pesce": "Fish",
+      "pizza": "Pizza",
+      "formaggi": "Cheese",
+      "aperitivo": "Aperitif",
+      "regalo": "Gift",
+      "dopocena": "After dinner"
+    },
+    "placeholder": "E.g. baked fish, four of us",
+    "send": "Advise me",
+    "dictate": "Dictate",
+    "listening": "Listening…",
+    "taste_q": "Lighter or more full-bodied?",
+    "taste": {
+      "leggero": "Light and fresh",
+      "importante": "Full-bodied",
+      "voi": "You choose"
+    },
+    "loading": "Choosing bottles for you…",
+    "advice": "Enoteca Nocchia recommends",
+    "in_shop": "3 bottles in the shop",
+    "open": "Open the card",
+    "more": "More suggestions",
+    "counter": "Ask for the bottles at the counter.",
+    "error": "Advice failed: please try again.",
+    "none": "No suitable bottles found: try saying it another way.",
+    "back": "Back"
   }
 }

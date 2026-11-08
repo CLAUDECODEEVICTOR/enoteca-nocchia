@@ -64,6 +64,14 @@ export default function HomePage() {
         >
           {t("home.cta")}
         </button>
+
+        <button
+          onClick={() => router.push("/sommelier")}
+          className="w-full max-w-xs -mt-2 px-8 py-4 rounded-xl text-base md:text-lg font-medium transition-all duration-300 active:scale-95 animate-fade-in-3"
+          style={{ background: "transparent", color: "var(--color-bordeaux)", border: "1px solid var(--color-bordeaux)" }}
+        >
+          {t("sommelier.cta")}
+        </button>
       </div>
 
       {/* Staff door: everything reserved sits behind the admin PIN */}

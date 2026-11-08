@@ -62,7 +62,8 @@ export function ensureSchema(): Promise<void> {
           ADD COLUMN IF NOT EXISTS foto_tipo TEXT,
           ADD COLUMN IF NOT EXISTS foto_il TIMESTAMPTZ,
           ADD COLUMN IF NOT EXISTS verificata_da TEXT,
-          ADD COLUMN IF NOT EXISTS verificata_il TIMESTAMPTZ;
+          ADD COLUMN IF NOT EXISTS verificata_il TIMESTAMPTZ,
+          ADD COLUMN IF NOT EXISTS etichette JSONB;
       `;
       // What the automatic check against producers' sources found, field by field, per card.
       await sql`
@@ -173,4 +174,28 @@ export function ensureTempiSchema(): Promise<void> {
     });
   }
   return tempiSchemaReady;
+}
+
+// Every piece of advice the sommelier gave: what was asked, the three bottles, time and cost.
+// The bottles shown lately weigh a little less next time, so the shop's bottles take turns.
+let sommelierSchemaReady: Promise<void> | null = null;
+export function ensureSommelierSchema(): Promise<void> {
+  if (!sommelierSchemaReady) {
+    sommelierSchemaReady = (async () => {
+      await sql`
+        CREATE TABLE IF NOT EXISTS sommelier_consigli (
+          id SERIAL PRIMARY KEY,
+          creato_il TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          richiesta JSONB NOT NULL,
+          scelte TEXT[] NOT NULL,
+          ms INTEGER,
+          costo NUMERIC(10,5)
+        );
+      `;
+    })().catch((e) => {
+      sommelierSchemaReady = null;
+      throw e;
+    });
+  }
+  return sommelierSchemaReady;
 }

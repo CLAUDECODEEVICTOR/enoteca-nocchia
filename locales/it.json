@@ -11,7 +11,7 @@
     "retake": "Riprovi",
     "analyze": "Analizza",
     "retro_title": "In negozio ci sono bottiglie molto simili",
-    "retro_text": "Fotografa l'etichetta sul retro, oppure scegli la\u00a0bottiglia dall'elenco.",
+    "retro_text": "Fotografa l'etichetta sul retro, oppure scegli la bottiglia dall'elenco.",
     "retro_instruction": "Inquadra l'etichetta sul retro",
     "retro_skip": "Salta",
     "retro_list": "Scegli dall'elenco",
@@ -57,5 +57,38 @@
     "camera_unavailable": "Fotocamera non disponibile. Controlla che nessun'altra app la stia usando e riprova.",
     "camera_denied": "Permesso fotocamera negato. Abilita la fotocamera nelle impostazioni del browser.",
     "camera_retry": "Riprova"
+  },
+  "sommelier": {
+    "cta": "Chiedi un consiglio",
+    "title": "Cosa portiamo in tavola?",
+    "sub": "Tocca un piatto o un'occasione, oppure raccontacelo con parole tue.",
+    "choices": {
+      "carne": "Carne",
+      "pesce": "Pesce",
+      "pizza": "Pizza",
+      "formaggi": "Formaggi",
+      "aperitivo": "Aperitivo",
+      "regalo": "Regalo",
+      "dopocena": "Dopo cena"
+    },
+    "placeholder": "Es. pesce al forno, siamo in quattro",
+    "send": "Consigliami",
+    "dictate": "Detta",
+    "listening": "Ti ascolto…",
+    "taste_q": "Lo preferite più leggero o più importante?",
+    "taste": {
+      "leggero": "Leggero e fresco",
+      "importante": "Importante",
+      "voi": "Scegliete voi"
+    },
+    "loading": "Scelgo le bottiglie per te…",
+    "advice": "Il consiglio di Enoteca Nocchia",
+    "in_shop": "3 bottiglie in negozio",
+    "open": "Apri la scheda",
+    "more": "Altri consigli",
+    "counter": "Le bottiglie si chiedono al banco.",
+    "error": "Consiglio non riuscito: riprova.",
+    "none": "Non ho trovato bottiglie adatte: prova a dirmelo in un altro modo.",
+    "back": "Indietro"
   }
 }
