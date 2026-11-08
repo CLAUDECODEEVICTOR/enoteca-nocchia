@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { WineAnalysis } from "@/lib/types";
 import TastingNotes from "./TastingNotes";
 import FoodPairing from "./FoodPairing";
-import { IconEye, IconNose, IconPalate, IconThermometer, IconWineGlass } from "./Icons";
+import { BolloIcona, IconEye, IconNose, IconPalate, IconThermometer, IconWineGlass } from "./Icons";
 
 interface WineCardProps {
   wine: WineAnalysis;
@@ -90,7 +90,7 @@ export default function WineCard({ wine }: WineCardProps) {
       }}
     >
       <div className="flex items-center gap-3 mb-3">
-        <span style={{ color: "var(--color-gold)" }}><IconWineGlass size={18} /></span>
+        <BolloIcona><IconWineGlass size={22} /></BolloIcona>
         <h3
           className="font-bold uppercase tracking-wider text-sm"
           style={{
@@ -112,7 +112,7 @@ export default function WineCard({ wine }: WineCardProps) {
     // Note visive
     <TastingNotes
       key="visive"
-      icon={<IconEye size={18} />}
+      icon={<IconEye size={22} />}
       title={t("result.sections.visual")}
       text={wine.note_visive}
     />,
@@ -120,7 +120,7 @@ export default function WineCard({ wine }: WineCardProps) {
     // Note olfattive
     <TastingNotes
       key="olfattive"
-      icon={<IconNose size={18} />}
+      icon={<IconNose size={22} />}
       title={t("result.sections.nose")}
       text={wine.note_olfattive}
     />,
@@ -128,7 +128,7 @@ export default function WineCard({ wine }: WineCardProps) {
     // Note gustative
     <TastingNotes
       key="gustative"
-      icon={<IconPalate size={18} />}
+      icon={<IconPalate size={22} />}
       title={t("result.sections.palate")}
       text={wine.note_gustative}
     />,
@@ -143,7 +143,7 @@ export default function WineCard({ wine }: WineCardProps) {
       }}
     >
       <div className="flex items-center gap-3 mb-3">
-        <span style={{ color: "var(--color-gold)" }}><IconThermometer size={18} /></span>
+        <BolloIcona><IconThermometer size={22} /></BolloIcona>
         <h3
           className="font-bold uppercase tracking-wider text-sm"
           style={{

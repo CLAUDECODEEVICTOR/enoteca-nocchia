@@ -179,6 +179,7 @@ export default function ScanPage() {
 
       localStorage.setItem("lastWineAnalysis", JSON.stringify(bilingualData));
       localStorage.removeItem("wineBottleImage"); // Will be fetched on result page
+      sessionStorage.removeItem("indietro");
       router.push("/result");
     } catch {
       setIsAnalyzing(false);

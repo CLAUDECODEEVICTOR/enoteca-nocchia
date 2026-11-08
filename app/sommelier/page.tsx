@@ -78,6 +78,30 @@ export default function SommelierPage() {
     return () => cancelAnimationFrame(id);
   }, []);
 
+  // Back from a card: the three bottles come back as they were, not an empty page.
+  useEffect(() => {
+    if (sessionStorage.getItem("sommelier_torna") !== "1") return;
+    let s: { scelte: string[]; stile: string; testo: string; intro: string; consigli: Consiglio[]; visti: string[]; consiglioId: number | null; ultima: typeof ultima.current } | null = null;
+    try { s = JSON.parse(sessionStorage.getItem("sommelier_ultimo") || "null"); } catch {}
+    if (!s?.consigli?.length) return;
+    const ultimo = s;
+    const id = requestAnimationFrame(() => {
+      sessionStorage.removeItem("sommelier_torna");
+      ultima.current = ultimo.ultima;
+      setScelte(ultimo.scelte);
+      setStile(ultimo.stile);
+      setTesto(ultimo.testo);
+      setIntro(ultimo.intro);
+      setConsigli(ultimo.consigli);
+      setVisti(ultimo.visti);
+      setConsiglioId(ultimo.consiglioId);
+      setStato("pronto");
+      // Once the bottles are drawn, land on them rather than on the empty form.
+      setTimeout(() => risultati.current?.scrollIntoView({ block: "start" }), 60);
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
+
   const chiedi = async (richiesta: { scelte?: string[]; gusto?: string; testo?: string }, altri = false) => {
     ultima.current = richiesta;
     setStato("carica");
@@ -87,6 +111,8 @@ export default function SommelierPage() {
     setConsigli([]);
     setConsiglioId(null);
     ferma();
+    // Straight to the results: the empty cards show at once, so the tap is never left unanswered.
+    requestAnimationFrame(() => risultati.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
     try {
       const res = await fetch("/api/sommelier", {
         method: "POST",
@@ -113,10 +139,7 @@ export default function SommelierPage() {
           if (e.tipo === "consiglio") {
             arrivati = [...arrivati, e.consiglio];
             setConsigli(arrivati);
-            if (arrivati.length === 1) {
-              setStato("pronto");
-              requestAnimationFrame(() => risultati.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
-            }
+            if (arrivati.length === 1) setStato("pronto");
           }
           if (e.tipo === "nessuno") return setStato("nessuno");
           if (e.tipo === "errore") throw new Error();
@@ -196,6 +219,8 @@ export default function SommelierPage() {
     sessionStorage.removeItem("lastScanThumbnail");
     sessionStorage.removeItem("cronometro");
     sessionStorage.setItem(`scan_saved_${d.it?.nome_vino}_${d.it?.annata}`, "1");
+    sessionStorage.setItem("sommelier_ultimo", JSON.stringify({ scelte, stile, testo, intro, consigli, visti, consiglioId, ultima: ultima.current }));
+    sessionStorage.setItem("indietro", "/sommelier");
     router.push("/result");
   };
 
@@ -291,20 +316,24 @@ export default function SommelierPage() {
 
         <button
           onClick={invia}
-          disabled={!puoChiedere || stato === "carica"}
+          disabled={!puoChiedere || inArrivo}
           className="mt-8 w-full min-h-[56px] rounded-[14px] text-base md:text-lg font-medium transition-colors duration-150"
           style={puoChiedere ? { background: C.vino, color: "#fff" } : { background: C.crema, color: C.muto }}
         >
-          {t("sommelier.send")}
+          {inArrivo ? (
+            <span className="inline-flex items-center gap-3">
+              <span aria-hidden="true" className="w-5 h-5 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+              {t("sommelier.searching")}
+            </span>
+          ) : (
+            t("sommelier.send")
+          )}
         </button>
 
         <div ref={risultati} className="scroll-mt-6">
-          {stato === "carica" && !consigli.length && (
-            <p className="mt-10 text-base" style={{ color: C.oro }}>{t("sommelier.loading")}</p>
-          )}
           {stato === "errore" && <p className="mt-8 text-base" style={{ color: "#c0392b" }}>{t("sommelier.error")}</p>}
           {stato === "nessuno" && <p className="mt-8 text-base" style={{ color: C.muto }}>{t("sommelier.none")}</p>}
-          {(stato === "pronto" || (stato === "carica" && consigli.length > 0)) && (
+          {(stato === "pronto" || stato === "carica") && (
             <section className="mt-14">
               <div className="flex items-end justify-between gap-4 flex-wrap">
                 <h2 className="text-[30px] md:text-4xl font-medium leading-tight" style={{ fontFamily: "var(--font-playfair)", color: C.inchiostro }}>
@@ -317,7 +346,11 @@ export default function SommelierPage() {
                   </button>
                 )}
               </div>
-              {intro && <p className="mt-3 text-[17px] leading-relaxed max-w-[52ch]" style={{ color: C.muto }}>{intro}</p>}
+              {intro ? (
+                <p className="mt-3 text-[17px] leading-relaxed max-w-[52ch]" style={{ color: C.muto }}>{intro}</p>
+              ) : (
+                inArrivo && <p className="mt-3 text-[17px] leading-relaxed" style={{ color: C.oro }} role="status">{t("sommelier.loading")}</p>
+              )}
               {voceKo && <p className="mt-2 text-sm" style={{ color: "#c0392b" }}>{t("sommelier.voice_error")}</p>}
 
               <ol className="mt-6 grid gap-3">
@@ -362,7 +395,6 @@ export default function SommelierPage() {
                     </li>
                   ))}
               </ol>
-              {inArrivo && <p className="mt-3 text-sm" style={{ color: C.oro }}>{t("sommelier.loading")}</p>}
               <div className="flex items-center justify-between gap-4 mt-5 flex-wrap" style={{ visibility: inArrivo ? "hidden" : "visible" }}>
                 <p className="text-sm max-w-[40ch]" style={{ color: C.muto }}>{t("sommelier.counter")}</p>
                 <button onClick={() => chiedi(ultima.current, true)} className="min-h-[48px] px-5 rounded-[12px] text-base font-medium bg-white" style={{ color: C.inchiostro, border: `1.5px solid ${C.linea}` }}>

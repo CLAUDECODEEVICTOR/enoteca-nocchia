@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { BolloIcona } from "./Icons";
 
 interface TastingNotesProps {
   icon: ReactNode;
@@ -18,7 +19,7 @@ export default function TastingNotes({ icon, title, text }: TastingNotesProps) {
       }}
     >
       <div className="flex items-center gap-3 mb-3">
-        <span style={{ color: "var(--color-gold)" }}>{icon}</span>
+        <BolloIcona>{icon}</BolloIcona>
         <h3
           className="font-bold uppercase tracking-wider text-sm"
           style={{

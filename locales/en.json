@@ -48,7 +48,8 @@
       "media": "Medium confidence",
       "bassa": "Low confidence",
       "nulla": "Bottle not recognized"
-    }
+    },
+    "back": "Back"
   },
   "error": {
     "not_recognized": "Cannot read this label",
@@ -99,6 +100,7 @@
     "listen": "Listen to the advice",
     "listen_one": "Listen",
     "stop": "Stop",
-    "voice_error": "Voice not available right now."
+    "voice_error": "Voice not available right now.",
+    "searching": "Finding your bottles…"
   }
 }

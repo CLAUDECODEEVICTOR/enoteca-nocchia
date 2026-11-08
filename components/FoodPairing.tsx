@@ -1,6 +1,6 @@
 "use client";
 
-import { IconUtensils } from "./Icons";
+import { BolloIcona, IconUtensils } from "./Icons";
 
 interface FoodPairingProps {
   title: string;
@@ -17,7 +17,7 @@ export default function FoodPairing({ title, pairings }: FoodPairingProps) {
       }}
     >
       <div className="flex items-center gap-3 mb-4">
-        <span style={{ color: "var(--color-gold)" }}><IconUtensils size={18} /></span>
+        <BolloIcona><IconUtensils size={22} /></BolloIcona>
         <h3
           className="font-bold uppercase tracking-wider text-sm"
           style={{

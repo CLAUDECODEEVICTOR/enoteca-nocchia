@@ -48,7 +48,8 @@
       "media": "Analisi probabile",
       "bassa": "Analisi incerta",
       "nulla": "Bottiglia non riconosciuta"
-    }
+    },
+    "back": "Indietro"
   },
   "error": {
     "not_recognized": "Non riesco a leggere questa etichetta",
@@ -99,6 +100,7 @@
     "listen": "Ascolta il consiglio",
     "listen_one": "Ascolta",
     "stop": "Ferma",
-    "voice_error": "Voce non disponibile ora."
+    "voice_error": "Voce non disponibile ora.",
+    "searching": "Cerco le bottiglie…"
   }
 }

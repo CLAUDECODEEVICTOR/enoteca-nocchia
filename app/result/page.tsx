@@ -33,6 +33,35 @@ function saveScan(
   }
 }
 
+// Top left, opposite the language toggle: back to the sommelier's three bottles if the card came
+// from there, otherwise home. Read on tap, so the server render and the first paint stay the same.
+function Indietro() {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const vai = () => {
+    if (sessionStorage.getItem("indietro") === "/sommelier") {
+      sessionStorage.setItem("sommelier_torna", "1");
+      return router.push("/sommelier");
+    }
+    router.push("/");
+  };
+  return (
+    <button
+      onClick={vai}
+      className="fixed top-4 left-4 z-50 min-h-[44px] px-3 flex items-center gap-1.5 rounded-lg text-sm font-medium"
+      style={{
+        marginTop: "env(safe-area-inset-top)",
+        background: "rgba(255,255,255,0.85)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+        color: "var(--color-muted)",
+      }}
+    >
+      <span aria-hidden="true">←</span> {t("result.back")}
+    </button>
+  );
+}
+
 export default function ResultPage() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -189,6 +218,7 @@ export default function ResultPage() {
       }}
     >
       <LanguageToggle />
+      <Indietro />
 
       {/* Hero bottiglia */}
       {bottleImage && (
