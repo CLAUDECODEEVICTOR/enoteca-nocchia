@@ -7,8 +7,8 @@ import { schedaScelta } from "@/lib/catalogo";
 
 export const maxDuration = 30;
 
-const SCELTE = ["carne", "pesce", "pizza", "formaggi", "aperitivo", "regalo", "dopocena"];
-const GUSTI = ["leggero", "importante"];
+const SCELTE = ["pesce", "carne", "pizza", "formaggi", "dolci", "aperitivo", "dopocena", "regalo"];
+const GUSTI = ["leggero", "morbido", "intenso"];
 // Without a PIN, a ceiling per day keeps a leaked link from running up the bill.
 const MASSIMO_AL_GIORNO = 400;
 
@@ -20,12 +20,12 @@ export async function POST(req: NextRequest) {
   if (!rateLimit(`sommelier:${ip}`, 12)) return NextResponse.json({ error: "Troppe richieste. Riprova tra un minuto." }, { status: 429 });
   try {
     const b = await req.json();
-    const scelta = SCELTE.includes(b?.scelta) ? (b.scelta as string) : undefined;
+    const scelte = Array.isArray(b?.scelte) ? [...new Set(b.scelte.filter((x: unknown): x is string => typeof x === "string" && SCELTE.includes(x)))].slice(0, 4) as string[] : [];
     const gusto = GUSTI.includes(b?.gusto) ? (b.gusto as string) : undefined;
     const testo = typeof b?.testo === "string" && b.testo.trim() ? b.testo.trim().slice(0, 400) : undefined;
     const escludi = Array.isArray(b?.escludi) ? b.escludi.filter((x: unknown): x is string => typeof x === "string").slice(0, 30) : [];
     const lang = b?.lang === "en" ? "en" : "it";
-    if (!scelta && !testo) return NextResponse.json({ error: "Dimmi cosa mangi o per quale occasione" }, { status: 400 });
+    if (!scelte.length && !testo) return NextResponse.json({ error: "Dimmi cosa mangi o per quale occasione" }, { status: 400 });
     await ensureSommelierSchema();
     const [oggi] = await sql`SELECT COUNT(*)::int AS n FROM sommelier_consigli WHERE creato_il > date_trunc('day', NOW())`;
     if (oggi.n >= MASSIMO_AL_GIORNO) return NextResponse.json({ error: "Il sommelier riposa: riprova domani." }, { status: 429 });
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       async start(controller) {
         const invia = (e: unknown) => controller.enqueue(codifica.encode(JSON.stringify(e) + "\n"));
         try {
-          if (!(await consiglia({ scelta, gusto, testo, lang, escludi }, invia))) invia({ tipo: "nessuno" });
+          if (!(await consiglia({ scelte, gusto, testo, lang, escludi }, invia))) invia({ tipo: "nessuno" });
         } catch (error) {
           console.error("[sommelier]", error);
           invia({ tipo: "errore" });

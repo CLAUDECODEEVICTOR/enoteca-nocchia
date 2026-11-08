@@ -18,7 +18,7 @@ type Bottiglia = {
   bottle_image: string | null;
 };
 
-export type Richiesta = { scelta?: string; gusto?: string; testo?: string; lang: "it" | "en"; escludi?: string[] };
+export type Richiesta = { scelte?: string[]; gusto?: string; testo?: string; lang: "it" | "en"; escludi?: string[] };
 
 // The quick choices on screen and the tags they stand for.
 const SCELTE: Record<string, Partial<Pick<Etichette, "piatti" | "occasioni">> & { tipi?: Etichette["tipo"][] }> = {
@@ -26,6 +26,7 @@ const SCELTE: Record<string, Partial<Pick<Etichette, "piatti" | "occasioni">> & 
   pesce: { piatti: ["pesce", "crudi-di-mare", "primi-di-mare"] },
   pizza: { piatti: ["pizza"] },
   formaggi: { piatti: ["formaggi-stagionati", "formaggi-freschi"] },
+  dolci: { piatti: ["dolci", "cioccolato"] },
   aperitivo: { occasioni: ["aperitivo"], piatti: ["antipasti", "salumi"] },
   regalo: { occasioni: ["regalo", "grande-occasione"] },
   dopocena: { occasioni: ["dopo-cena", "meditazione"], tipi: ["dolce", "distillato", "liquore"] },
@@ -55,11 +56,15 @@ export function cosaCerca(r: Richiesta) {
   const piatti = new Set<string>();
   const occasioni = new Set<string>();
   const tipi = new Set<string>();
-  let corpo: string | null = r.gusto === "leggero" ? "leggero" : r.gusto === "importante" ? "strutturato" : null;
-  const s = r.scelta ? SCELTE[r.scelta] : undefined;
-  s?.piatti?.forEach((p) => piatti.add(p));
-  s?.occasioni?.forEach((o) => occasioni.add(o));
-  s?.tipi?.forEach((t) => tipi.add(t));
+  // The style the customer picked: fresh and light, soft and round, or intense and full.
+  let corpo: string | null = r.gusto === "leggero" ? "leggero" : r.gusto === "intenso" ? "strutturato" : r.gusto === "morbido" ? "medio" : null;
+  const dolcezza: string | null = r.gusto === "morbido" ? "morbido" : null;
+  for (const scelta of r.scelte || []) {
+    const s = SCELTE[scelta];
+    s?.piatti?.forEach((p) => piatti.add(p));
+    s?.occasioni?.forEach((o) => occasioni.add(o));
+    s?.tipi?.forEach((t) => tipi.add(t));
+  }
   for (const [re, tag] of PAROLE) {
     if (!r.testo || !re.test(r.testo)) continue;
     tag.piatti?.forEach((p) => piatti.add(p));
@@ -67,7 +72,7 @@ export function cosaCerca(r: Richiesta) {
     if (tag.tipo) tipi.add(tag.tipo);
     if (tag.corpo && !corpo) corpo = tag.corpo;
   }
-  return { piatti, occasioni, tipi, corpo };
+  return { piatti, occasioni, tipi, corpo, dolcezza };
 }
 
 // Bottles shown often lately lose a little ground, so equally good ones take turns.
@@ -91,6 +96,7 @@ function candidate(lista: Bottiglia[], cerca: ReturnType<typeof cosaCerca>, rece
       p += 3 * e.piatti.filter((x) => cerca.piatti.has(x)).length;
       p += 2 * e.occasioni.filter((x) => cerca.occasioni.has(x)).length;
       if (cerca.corpo) p += e.corpo === cerca.corpo ? 1.5 : e.corpo === "medio" ? 0 : -1.5;
+      if (cerca.dolcezza && e.dolcezza === cerca.dolcezza) p += 1.5;
       p -= Math.min(2, 0.5 * (recenti.get(b.id) || 0));
       // A bottle the customer can see on screen is a little better than one without a photo.
       if (b.bottle_image) p += 0.5;
@@ -177,7 +183,10 @@ export async function consiglia(r: Richiesta, invia: (e: Evento) => void): Promi
   let costo = 0;
   if (r.testo && !cerca.piatti.size && !cerca.occasioni.size && !cerca.tipi.size) costo += await tagDalTesto(r.testo, cerca).catch(() => 0);
   const [lista, recenti] = await Promise.all([bottiglie(), mostrateDiRecente()]);
-  const scelte = candidate(lista, cerca, recenti, new Set(r.escludi || []));
+  let scelte = candidate(lista, cerca, recenti, new Set(r.escludi || []));
+  // Choices that pull apart (fish and after dinner) can leave too few bottles: keep the dishes
+  // and occasions as preferences, drop the strict type.
+  if (scelte.length < 3 && cerca.tipi.size) scelte = candidate(lista, { ...cerca, tipi: new Set() }, recenti, new Set(r.escludi || []));
   if (scelte.length < 3) return false;
 
   const elenco = scelte
@@ -187,7 +196,7 @@ export async function consiglia(r: Richiesta, invia: (e: Evento) => void): Promi
     })
     .join("\n");
   const domanda = [
-    r.scelta && `Scelta: ${r.scelta}`,
+    r.scelte?.length && `Scelte: ${r.scelte.join(", ")}`,
     r.gusto && `Gusto: ${r.gusto}`,
     r.testo && `Parole del cliente: "${r.testo.slice(0, 400)}"`,
   ].filter(Boolean).join("\n");
@@ -240,7 +249,7 @@ export async function consiglia(r: Richiesta, invia: (e: Evento) => void): Promi
   costo += (risposta.usage.input_tokens * 2 + risposta.usage.output_tokens * 10) / 1e6;
   const testi = { lang: r.lang, intro: out.intro, consigli: consigli.map((c) => ({ nome: c.nome_vino, produttore: c.produttore, perche: c.perche })) };
   const [riga] = await sql`INSERT INTO sommelier_consigli (richiesta, scelte, ms, costo, testi)
-    VALUES (${JSON.stringify({ scelta: r.scelta, gusto: r.gusto, testo: r.testo, lang: r.lang })}::jsonb, ${consigli.map((c) => c.id)}, ${ms}, ${costo}, ${JSON.stringify(testi)}::jsonb)
+    VALUES (${JSON.stringify({ scelte: r.scelte, gusto: r.gusto, testo: r.testo, lang: r.lang })}::jsonb, ${consigli.map((c) => c.id)}, ${ms}, ${costo}, ${JSON.stringify(testi)}::jsonb)
     RETURNING id`;
   invia({ tipo: "fine", ms, id: riga.id as number });
   return true;

@@ -15,9 +15,22 @@ interface Consiglio {
   perche: string;
 }
 
-const SCELTE = ["carne", "pesce", "pizza", "formaggi", "aperitivo", "regalo", "dopocena"] as const;
-// After a gift or after dinner the body of the wine is not the question: advice comes at once.
-const SENZA_GUSTO = new Set(["regalo", "dopocena"]);
+const TAVOLA = ["pesce", "carne", "pizza", "formaggi", "dolci"] as const;
+const OCCASIONE = ["aperitivo", "dopocena", "regalo"] as const;
+const STILI = ["leggero", "morbido", "intenso", "voi"] as const;
+// A gift or an after-dinner bottle is not chosen by body: the style question shows only with food or words.
+const SENZA_STILE = new Set(["regalo", "dopocena"]);
+
+// This page's palette: warm paper instead of cold white, ink instead of pure black.
+const C = { carta: "#FCFBF8", inchiostro: "#302D28", muto: "#746E65", linea: "#E8E1D6", crema: "#F5F2EB", oro: "var(--color-gold)", vino: "var(--color-bordeaux)" };
+
+function Spunta() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+      <path d="M5 12.5 10 17 19 7" />
+    </svg>
+  );
+}
 
 function Altoparlante() {
   return (
@@ -33,9 +46,9 @@ type Riconoscimento = { lang: string; interimResults: boolean; onresult: (e: { r
 export default function SommelierPage() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const [scelta, setScelta] = useState<string | null>(null);
+  const [scelte, setScelte] = useState<string[]>([]);
+  const [stile, setStile] = useState<string>("voi");
   const [testo, setTesto] = useState("");
-  const [chiediGusto, setChiediGusto] = useState(false);
   const [stato, setStato] = useState<"scegli" | "carica" | "pronto" | "errore" | "nessuno">("scegli");
   const [intro, setIntro] = useState("");
   const [consigli, setConsigli] = useState<Consiglio[]>([]);
@@ -50,7 +63,7 @@ export default function SommelierPage() {
   const audio = useRef<HTMLAudioElement | null>(null);
   const [ascolta, setAscolta] = useState(false);
   const [puoDettare, setPuoDettare] = useState(false);
-  const ultima = useRef<{ scelta?: string; gusto?: string; testo?: string }>({});
+  const ultima = useRef<{ scelte?: string[]; gusto?: string; testo?: string }>({});
   const voce = useRef<Riconoscimento | null>(null);
   const risultati = useRef<HTMLDivElement>(null);
   const lang = i18n.language.startsWith("en") ? "en" : "it";
@@ -65,9 +78,8 @@ export default function SommelierPage() {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  const chiedi = async (richiesta: { scelta?: string; gusto?: string; testo?: string }, altri = false) => {
+  const chiedi = async (richiesta: { scelte?: string[]; gusto?: string; testo?: string }, altri = false) => {
     ultima.current = richiesta;
-    setChiediGusto(false);
     setStato("carica");
     setInArrivo(true);
     const escludi = altri ? visti : [];
@@ -151,20 +163,13 @@ export default function SommelierPage() {
 
   useEffect(() => () => audio.current?.pause(), []);
 
-  const tocca = (s: string) => {
-    setScelta(s);
-    if (SENZA_GUSTO.has(s)) return chiedi({ scelta: s, testo: testo.trim() || undefined });
-    setChiediGusto(true);
-    setStato("scegli");
-  };
-
+  const tocca = (s: string) => setScelte((v) => (v.includes(s) ? v.filter((x) => x !== s) : [...v, s]));
+  const puoChiedere = scelte.length > 0 || testo.trim().length > 0;
+  const conStile = testo.trim().length > 0 || scelte.some((s) => !SENZA_STILE.has(s));
   const invia = () => {
-    if (!testo.trim()) return;
-    setChiediGusto(true);
-    setStato("scegli");
+    if (!puoChiedere) return;
+    chiedi({ scelte, gusto: conStile && stile !== "voi" ? stile : undefined, testo: testo.trim() || undefined });
   };
-
-  const gusto = (g: string) => chiedi({ scelta: scelta || undefined, gusto: g === "voi" ? undefined : g, testo: testo.trim() || undefined });
 
   const detta = () => {
     if (ascolta) return voce.current?.stop();
@@ -194,144 +199,173 @@ export default function SommelierPage() {
     router.push("/result");
   };
 
-  const chip = (attivo: boolean) =>
-    attivo
-      ? { background: "var(--color-bordeaux)", color: "#fff", border: "1px solid var(--color-bordeaux)" }
-      : { background: "#fff", color: "var(--color-text)", border: "1px solid var(--color-border)" };
+  const opzione = (attiva: boolean) => ({
+    background: attiva ? C.crema : "#fff",
+    color: C.inchiostro,
+    border: `1.5px solid ${attiva ? C.vino : C.linea}`,
+  });
+  const etichetta = "block text-xs font-bold uppercase mb-3";
+  const etichettaStile = { color: C.muto, letterSpacing: "0.14em" };
+
+  const opzioni = (voci: readonly string[], gruppo: "choices" | "taste", colonne: string) => (
+    <div className={`grid gap-2.5 ${colonne}`}>
+      {voci.map((v) => {
+        const attiva = gruppo === "choices" ? scelte.includes(v) : stile === v;
+        return (
+          <button
+            key={v}
+            onClick={() => (gruppo === "choices" ? tocca(v) : setStile(v))}
+            aria-pressed={attiva}
+            className="min-h-[56px] px-3 sm:px-4 rounded-[14px] text-[15px] sm:text-base font-medium leading-tight flex items-center justify-between gap-1.5 text-left transition-colors duration-150"
+            style={opzione(attiva)}
+          >
+            <span>{t(`sommelier.${gruppo}.${v}`)}</span>
+            {attiva && <span style={{ color: C.vino }}><Spunta /></span>}
+          </button>
+        );
+      })}
+    </div>
+  );
 
   return (
     <main
-      className="min-h-dvh px-5 md:px-10"
-      style={{ background: "var(--color-bg)", paddingTop: "calc(env(safe-area-inset-top) + 16px)", paddingBottom: "calc(env(safe-area-inset-bottom) + 32px)" }}
+      className="min-h-dvh px-6 md:px-12"
+      style={{ background: C.carta, color: C.inchiostro, paddingTop: "calc(env(safe-area-inset-top) + 16px)", paddingBottom: "calc(env(safe-area-inset-bottom) + 40px)" }}
     >
       <LanguageToggle />
-      <div className="max-w-2xl mx-auto">
-        <button onClick={() => router.push("/")} className="min-h-[44px] pr-3 text-sm" style={{ color: "var(--color-muted)" }}>
-          ← {t("sommelier.back")}
-        </button>
-        <h1 className="text-4xl md:text-5xl font-semibold mt-4" style={{ fontFamily: "var(--font-playfair)", color: "var(--color-gold)", textWrap: "balance" }}>
-          {t("sommelier.title")}
-        </h1>
-        <p className="text-base md:text-lg mt-2 mb-6 max-w-md" style={{ color: "var(--color-muted)" }}>{t("sommelier.sub")}</p>
-
-        <div className="flex flex-wrap gap-2.5">
-          {SCELTE.map((s) => (
-            <button key={s} onClick={() => tocca(s)} aria-pressed={scelta === s} className="min-h-[48px] px-5 rounded-full text-base" style={chip(scelta === s)}>
-              {t(`sommelier.choices.${s}`)}
-            </button>
-          ))}
+      <div className="max-w-3xl mx-auto">
+        <div className="flex items-center gap-4 min-h-[44px]">
+          <button onClick={() => router.push("/")} className="min-h-[44px] pr-2 text-sm" style={{ color: C.muto }}>
+            ← {t("sommelier.back")}
+          </button>
+          <span className="hidden sm:inline text-xs font-bold uppercase" style={{ color: C.oro, letterSpacing: "0.18em" }}>{t("sommelier.brand")}</span>
         </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            invia();
-          }}
-          className="flex items-center gap-2 mt-4 rounded-2xl p-1.5 pl-4"
-          style={{ border: "1px solid var(--color-border)" }}
-        >
-          <input
-            value={testo}
-            onChange={(e) => setTesto(e.target.value)}
-            placeholder={ascolta ? t("sommelier.listening") : t("sommelier.placeholder")}
-            aria-label={t("sommelier.placeholder")}
-            enterKeyHint="send"
-            className="flex-1 min-w-0 min-h-[48px] text-base bg-transparent outline-none"
-            style={{ color: "var(--color-text)" }}
-          />
-          {puoDettare && (
-            <button type="button" onClick={detta} aria-label={t("sommelier.dictate")} aria-pressed={ascolta} className="w-12 h-12 rounded-xl grid place-items-center shrink-0" style={{ background: ascolta ? "var(--color-bordeaux)" : "var(--color-surface)", color: ascolta ? "#fff" : "var(--color-bordeaux)" }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></svg>
-            </button>
-          )}
-          {testo.trim() && (
-            <button type="submit" className="min-h-[48px] px-4 rounded-xl text-base font-medium text-white shrink-0" style={{ background: "var(--color-bordeaux)" }}>
-              {t("sommelier.send")}
-            </button>
-          )}
-        </form>
+        <h1 className="mt-8 md:mt-12 text-[40px] md:text-[54px] leading-[1.05] font-medium" style={{ fontFamily: "var(--font-playfair)", color: C.oro, textWrap: "balance" }}>
+          {t("sommelier.title")}
+        </h1>
+        <p className="mt-4 text-[17px] md:text-lg leading-relaxed max-w-[38ch]" style={{ color: C.muto }}>{t("sommelier.sub")}</p>
 
-        {chiediGusto && (
-          <div className="mt-6">
-            <p className="text-sm mb-2.5" style={{ color: "var(--color-muted)" }}>{t("sommelier.taste_q")}</p>
-            <div className="flex flex-wrap gap-2.5">
-              {(["leggero", "importante", "voi"] as const).map((g) => (
-                <button key={g} onClick={() => gusto(g)} className="min-h-[48px] px-5 rounded-full text-base" style={chip(false)}>
-                  {t(`sommelier.taste.${g}`)}
-                </button>
-              ))}
-            </div>
-          </div>
+        <section className="mt-10">
+          <h2 className={etichetta} style={etichettaStile}>{t("sommelier.group_table")}</h2>
+          {opzioni(TAVOLA, "choices", "grid-cols-3 sm:grid-cols-5")}
+        </section>
+        <section className="mt-7">
+          <h2 className={etichetta} style={etichettaStile}>{t("sommelier.group_occasion")}</h2>
+          {opzioni(OCCASIONE, "choices", "grid-cols-3")}
+          <p className="mt-2.5 text-sm" style={{ color: C.muto }}>{t("sommelier.multi")}</p>
+        </section>
+        <section className="mt-7">
+          <h2 className={etichetta} style={etichettaStile}>{t("sommelier.group_text")}</h2>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              invia();
+            }}
+            className="flex items-center gap-2 rounded-[14px] p-1.5 pl-4 bg-white transition-colors duration-150 focus-within:border-[var(--color-bordeaux)]"
+            style={{ border: `1.5px solid ${C.linea}` }}
+          >
+            <input
+              value={testo}
+              onChange={(e) => setTesto(e.target.value)}
+              placeholder={ascolta ? t("sommelier.listening") : t("sommelier.placeholder")}
+              aria-label={t("sommelier.placeholder")}
+              enterKeyHint="send"
+              className="flex-1 min-w-0 min-h-[48px] text-base bg-transparent outline-none"
+              style={{ color: C.inchiostro }}
+            />
+            {puoDettare && (
+              <button type="button" onClick={detta} aria-label={t("sommelier.dictate")} aria-pressed={ascolta} className="w-12 h-12 rounded-[10px] grid place-items-center shrink-0 transition-colors duration-150" style={{ background: ascolta ? C.vino : C.crema, color: ascolta ? "#fff" : C.vino }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></svg>
+              </button>
+            )}
+          </form>
+        </section>
+
+        {conStile && (
+          <section className="mt-7">
+            <h2 className={etichetta} style={etichettaStile}>{t("sommelier.group_style")}</h2>
+            {opzioni(STILI, "taste", "grid-cols-2 sm:grid-cols-4")}
+          </section>
         )}
 
-        <div ref={risultati} className="scroll-mt-4">
-          {stato === "carica" && (
-            <p className="mt-10 text-base animate-pulse" style={{ color: "var(--color-gold)" }}>{t("sommelier.loading")}</p>
+        <button
+          onClick={invia}
+          disabled={!puoChiedere || stato === "carica"}
+          className="mt-8 w-full min-h-[56px] rounded-[14px] text-base md:text-lg font-medium transition-colors duration-150"
+          style={puoChiedere ? { background: C.vino, color: "#fff" } : { background: C.crema, color: C.muto }}
+        >
+          {t("sommelier.send")}
+        </button>
+
+        <div ref={risultati} className="scroll-mt-6">
+          {stato === "carica" && !consigli.length && (
+            <p className="mt-10 text-base" style={{ color: C.oro }}>{t("sommelier.loading")}</p>
           )}
           {stato === "errore" && <p className="mt-8 text-base" style={{ color: "#c0392b" }}>{t("sommelier.error")}</p>}
-          {stato === "nessuno" && <p className="mt-8 text-base" style={{ color: "var(--color-muted)" }}>{t("sommelier.none")}</p>}
-          {stato === "pronto" && (
-            <section className="mt-8">
-              <div className="flex items-baseline justify-between gap-3 mb-1">
-                <h2 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>{t("sommelier.advice")}</h2>
-                <span className="text-sm shrink-0" style={{ color: "var(--color-muted)" }}>{t("sommelier.in_shop")}</span>
+          {stato === "nessuno" && <p className="mt-8 text-base" style={{ color: C.muto }}>{t("sommelier.none")}</p>}
+          {(stato === "pronto" || (stato === "carica" && consigli.length > 0)) && (
+            <section className="mt-14">
+              <div className="flex items-end justify-between gap-4 flex-wrap">
+                <h2 className="text-[30px] md:text-4xl font-medium leading-tight" style={{ fontFamily: "var(--font-playfair)", color: C.inchiostro }}>
+                  {t("sommelier.advice")}
+                </h2>
+                {consiglioId && (
+                  <button onClick={() => leggi("tutto")} aria-pressed={parla === "tutto"} className="min-h-[48px] px-4 rounded-[12px] flex items-center gap-2 text-base font-medium transition-colors duration-150" style={parla === "tutto" ? { background: C.vino, color: "#fff", border: `1.5px solid ${C.vino}` } : { background: "#fff", color: C.vino, border: `1.5px solid ${C.vino}` }}>
+                    <Altoparlante />
+                    {parla === "tutto" ? t("sommelier.stop") : t("sommelier.listen")}
+                  </button>
+                )}
               </div>
-              {intro && <p className="text-base mb-3" style={{ color: "var(--color-muted)" }}>{intro}</p>}
-              {consiglioId && (
-                <button onClick={() => leggi("tutto")} aria-pressed={parla === "tutto"} className="mb-4 min-h-[48px] px-4 rounded-xl flex items-center gap-2 text-base" style={chip(parla === "tutto")}>
-                  <Altoparlante />
-                  {parla === "tutto" ? t("sommelier.stop") : t("sommelier.listen")}
-                </button>
-              )}
-              {voceKo && <p className="text-sm mb-3" style={{ color: "#c0392b" }}>{t("sommelier.voice_error")}</p>}
-              <ul className="grid gap-3">
+              {intro && <p className="mt-3 text-[17px] leading-relaxed max-w-[52ch]" style={{ color: C.muto }}>{intro}</p>}
+              {voceKo && <p className="mt-2 text-sm" style={{ color: "#c0392b" }}>{t("sommelier.voice_error")}</p>}
+
+              <ol className="mt-6 grid gap-3">
                 {consigli.map((c, i) => (
-                  <li key={c.id} className="relative">
-                    <button onClick={() => apri(c)} className="w-full flex gap-4 items-center rounded-2xl p-4 text-left" style={{ background: "var(--color-surface)", border: "1px solid rgba(120,94,20,0.2)" }}>
-                      <div className="w-16 h-32 shrink-0 grid place-items-center">
-                        {c.bottle_image && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={c.bottle_image} alt="" className="max-h-32 max-w-16 object-contain" />
+                  <li key={c.id} className="rounded-2xl bg-white p-4 md:p-5 flex gap-4 md:gap-5" style={{ border: `1px solid ${C.linea}`, animation: "fadeInUp 0.3s ease both" }}>
+                    <button onClick={() => apri(c)} aria-label={`${t("sommelier.open")}: ${c.nome_vino}`} className="w-[84px] md:w-[96px] h-[150px] md:h-[170px] shrink-0 rounded-xl grid place-items-center" style={{ background: C.crema }}>
+                      {c.bottle_image && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={c.bottle_image} alt="" className="max-h-[136px] md:max-h-[156px] max-w-[72px] md:max-w-[84px] object-contain" />
+                      )}
+                    </button>
+                    <div className="min-w-0 flex flex-col">
+                      <span className="text-xs font-bold uppercase" style={{ color: C.oro, letterSpacing: "0.14em" }}>{i + 1}</span>
+                      <h3 className="mt-1 text-xl font-semibold leading-snug" style={{ color: C.inchiostro }}>{c.nome_vino}</h3>
+                      <p className="text-sm mt-0.5" style={{ color: C.muto }}>
+                        {[c.produttore, c.annata !== "N.V." ? c.annata : ""].filter(Boolean).join(" · ")}
+                      </p>
+                      <p className="mt-2.5 text-base leading-relaxed" style={{ color: C.inchiostro }}>{c.perche}</p>
+                      <div className="mt-auto pt-3 flex items-center gap-5 flex-wrap">
+                        <button onClick={() => apri(c)} className="min-h-[44px] text-[15px] font-medium" style={{ color: C.vino }}>
+                          {t("sommelier.open")} →
+                        </button>
+                        {consiglioId && (
+                          <button onClick={() => leggi(String(i + 1))} aria-pressed={parla === String(i + 1)} className="min-h-[44px] flex items-center gap-1.5 text-[15px]" style={{ color: parla === String(i + 1) ? C.vino : C.muto }}>
+                            <Altoparlante />
+                            {parla === String(i + 1) ? t("sommelier.stop") : t("sommelier.listen_one")}
+                          </button>
                         )}
                       </div>
-                      <div className="min-w-0 pr-10">
-                        <p className="text-lg font-semibold" style={{ color: "var(--color-text)" }}>{c.nome_vino}</p>
-                        <p className="text-sm mb-2" style={{ color: "var(--color-muted)" }}>
-                          {[c.produttore, c.annata !== "N.V." ? c.annata : ""].filter(Boolean).join(" · ")}
-                        </p>
-                        <p className="text-base leading-snug" style={{ color: "var(--color-text)" }}>{c.perche}</p>
-                        <span className="block text-sm mt-2" style={{ color: "var(--color-gold)" }}>{t("sommelier.open")} →</span>
-                      </div>
-                    </button>
-                    {consiglioId && (
-                      <button
-                        onClick={() => leggi(String(i + 1))}
-                        aria-label={`${parla === String(i + 1) ? t("sommelier.stop") : t("sommelier.listen_one")}: ${c.nome_vino}`}
-                        aria-pressed={parla === String(i + 1)}
-                        className="absolute top-2 right-2 w-11 h-11 rounded-full grid place-items-center"
-                        style={chip(parla === String(i + 1))}
-                      >
-                        <Altoparlante />
-                      </button>
-                    )}
+                    </div>
                   </li>
                 ))}
                 {inArrivo &&
                   Array.from({ length: Math.max(0, 3 - consigli.length) }, (_, i) => (
-                    <li key={`attesa-${i}`} aria-hidden="true" className="rounded-2xl p-4 flex gap-4 items-center animate-pulse" style={{ background: "var(--color-surface)", border: "1px solid rgba(120,94,20,0.12)" }}>
-                      <div className="w-16 h-32 shrink-0 rounded-lg" style={{ background: "rgba(120,94,20,0.08)" }} />
-                      <div className="grow grid gap-2">
-                        <div className="h-5 w-1/2 rounded" style={{ background: "rgba(120,94,20,0.1)" }} />
-                        <div className="h-4 w-1/3 rounded" style={{ background: "rgba(120,94,20,0.07)" }} />
-                        <div className="h-4 w-5/6 rounded" style={{ background: "rgba(120,94,20,0.07)" }} />
+                    <li key={`attesa-${i}`} aria-hidden="true" className="rounded-2xl bg-white p-4 md:p-5 flex gap-4 md:gap-5 animate-pulse" style={{ border: `1px solid ${C.linea}` }}>
+                      <div className="w-[84px] md:w-[96px] h-[150px] md:h-[170px] shrink-0 rounded-xl" style={{ background: C.crema }} />
+                      <div className="grow grid content-start gap-2.5 pt-5">
+                        <div className="h-5 w-1/2 rounded" style={{ background: C.crema }} />
+                        <div className="h-4 w-1/3 rounded" style={{ background: C.crema }} />
+                        <div className="h-4 w-5/6 rounded" style={{ background: C.crema }} />
                       </div>
                     </li>
                   ))}
-              </ul>
-              {inArrivo && <p className="mt-3 text-sm" style={{ color: "var(--color-gold)" }}>{t("sommelier.loading")}</p>}
-              <div className="flex items-center justify-between gap-3 mt-4 flex-wrap" style={{ visibility: inArrivo ? "hidden" : "visible" }}>
-                <p className="text-sm" style={{ color: "var(--color-muted)" }}>{t("sommelier.counter")}</p>
-                <button onClick={() => chiedi(ultima.current, true)} className="min-h-[48px] px-5 rounded-xl text-base" style={chip(false)}>
+              </ol>
+              {inArrivo && <p className="mt-3 text-sm" style={{ color: C.oro }}>{t("sommelier.loading")}</p>}
+              <div className="flex items-center justify-between gap-4 mt-5 flex-wrap" style={{ visibility: inArrivo ? "hidden" : "visible" }}>
+                <p className="text-sm max-w-[40ch]" style={{ color: C.muto }}>{t("sommelier.counter")}</p>
+                <button onClick={() => chiedi(ultima.current, true)} className="min-h-[48px] px-5 rounded-[12px] text-base font-medium bg-white" style={{ color: C.inchiostro, border: `1.5px solid ${C.linea}` }}>
                   {t("sommelier.more")}
                 </button>
               </div>

@@ -8,8 +8,8 @@
   --color-bordeaux: #8B1A1A;
   --color-text: #1A1A1A;
   --color-muted: #6B6860;
-  --font-playfair: var(--font-playfair);
-  --font-dm-sans: var(--font-dm-sans);
+  /* --font-playfair and --font-dm-sans come from next/font on <html>: redefining them here
+     as var() of themselves made a cycle, and every serif title fell back to the sans font. */
 }
 
 @theme inline {
