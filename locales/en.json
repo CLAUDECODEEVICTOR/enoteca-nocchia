@@ -89,6 +89,10 @@
     "counter": "Ask for the bottles at the counter.",
     "error": "Advice failed: please try again.",
     "none": "No suitable bottles found: try saying it another way.",
-    "back": "Back"
+    "back": "Back",
+    "listen": "Listen to the advice",
+    "listen_one": "Listen",
+    "stop": "Stop",
+    "voice_error": "Voice not available right now."
   }
 }

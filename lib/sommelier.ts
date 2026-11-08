@@ -166,7 +166,7 @@ async function tagDalTesto(testo: string, cerca: ReturnType<typeof cosaCerca>) {
 }
 
 export type Consiglio = { id: string; nome_vino: string; produttore: string; annata: string; bottle_image: string | null; perche: string };
-export type Evento = { tipo: "intro"; testo: string } | { tipo: "consiglio"; consiglio: Consiglio } | { tipo: "fine"; ms: number };
+export type Evento = { tipo: "intro"; testo: string } | { tipo: "consiglio"; consiglio: Consiglio } | { tipo: "fine"; ms: number; id: number };
 
 // The three bottles, in the order the model writes them: each goes out as soon as its sentence
 // is complete, so the first bottle is on screen while the others are still being written.
@@ -238,8 +238,10 @@ export async function consiglia(r: Richiesta, invia: (e: Evento) => void): Promi
 
   const ms = Date.now() - inizio;
   costo += (risposta.usage.input_tokens * 2 + risposta.usage.output_tokens * 10) / 1e6;
-  await sql`INSERT INTO sommelier_consigli (richiesta, scelte, ms, costo)
-    VALUES (${JSON.stringify({ scelta: r.scelta, gusto: r.gusto, testo: r.testo, lang: r.lang })}::jsonb, ${consigli.map((c) => c.id)}, ${ms}, ${costo})`;
-  invia({ tipo: "fine", ms });
+  const testi = { lang: r.lang, intro: out.intro, consigli: consigli.map((c) => ({ nome: c.nome_vino, produttore: c.produttore, perche: c.perche })) };
+  const [riga] = await sql`INSERT INTO sommelier_consigli (richiesta, scelte, ms, costo, testi)
+    VALUES (${JSON.stringify({ scelta: r.scelta, gusto: r.gusto, testo: r.testo, lang: r.lang })}::jsonb, ${consigli.map((c) => c.id)}, ${ms}, ${costo}, ${JSON.stringify(testi)}::jsonb)
+    RETURNING id`;
+  invia({ tipo: "fine", ms, id: riga.id as number });
   return true;
 }

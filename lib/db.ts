@@ -192,6 +192,19 @@ export function ensureSommelierSchema(): Promise<void> {
           costo NUMERIC(10,5)
         );
       `;
+      // What the sommelier said, so the voice can read it back without taking text from the browser.
+      await sql`ALTER TABLE sommelier_consigli ADD COLUMN IF NOT EXISTS testi JSONB`;
+      // Every spoken answer: characters and cost, to bill the shop for what the voice consumes.
+      await sql`
+        CREATE TABLE IF NOT EXISTS voce_usi (
+          id SERIAL PRIMARY KEY,
+          creato_il TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          consiglio INTEGER,
+          caratteri INTEGER NOT NULL,
+          modello TEXT NOT NULL,
+          costo NUMERIC(10,5)
+        );
+      `;
     })().catch((e) => {
       sommelierSchemaReady = null;
       throw e;

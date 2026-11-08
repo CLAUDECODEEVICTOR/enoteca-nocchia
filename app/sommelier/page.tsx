@@ -19,6 +19,15 @@ const SCELTE = ["carne", "pesce", "pizza", "formaggi", "aperitivo", "regalo", "d
 // After a gift or after dinner the body of the wine is not the question: advice comes at once.
 const SENZA_GUSTO = new Set(["regalo", "dopocena"]);
 
+function Altoparlante() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M11 5 6 9H2v6h4l5 4V5z" />
+      <path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14" />
+    </svg>
+  );
+}
+
 type Riconoscimento = { lang: string; interimResults: boolean; onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void; onend: () => void; start: () => void; stop: () => void };
 
 export default function SommelierPage() {
@@ -34,6 +43,11 @@ export default function SommelierPage() {
   // True while the advice is still being written: the missing bottles show as empty boxes.
   const [inArrivo, setInArrivo] = useState(false);
   const consigliRef = useRef<Consiglio[]>([]);
+  // The advice id the voice reads back, and which part is playing: "tutto", a bottle number, or nothing.
+  const [consiglioId, setConsiglioId] = useState<number | null>(null);
+  const [parla, setParla] = useState<string | null>(null);
+  const [voceKo, setVoceKo] = useState(false);
+  const audio = useRef<HTMLAudioElement | null>(null);
   const [ascolta, setAscolta] = useState(false);
   const [puoDettare, setPuoDettare] = useState(false);
   const ultima = useRef<{ scelta?: string; gusto?: string; testo?: string }>({});
@@ -59,6 +73,8 @@ export default function SommelierPage() {
     const escludi = altri ? visti : [];
     setIntro("");
     setConsigli([]);
+    setConsiglioId(null);
+    ferma();
     try {
       const res = await fetch("/api/sommelier", {
         method: "POST",
@@ -92,7 +108,10 @@ export default function SommelierPage() {
           }
           if (e.tipo === "nessuno") return setStato("nessuno");
           if (e.tipo === "errore") throw new Error();
-          if (e.tipo === "fine") finito = true;
+          if (e.tipo === "fine") {
+            finito = true;
+            setConsiglioId(e.id);
+          }
         }
       }
       if (!arrivati.length) throw new Error();
@@ -104,6 +123,33 @@ export default function SommelierPage() {
       setStato((s) => (s === "pronto" && consigliRef.current.length ? "pronto" : "errore"));
     }
   };
+
+  function ferma() {
+    audio.current?.pause();
+    audio.current = null;
+    setParla(null);
+  }
+
+  // Played only on a tap: no sound starts by itself in the shop. The audio element is created
+  // inside the tap, which is what Safari needs to allow playback.
+  const leggi = (parte: string) => {
+    if (parla === parte) return ferma();
+    ferma();
+    if (!consiglioId) return;
+    const a = new Audio(`/api/voce?consiglio=${consiglioId}${parte === "tutto" ? "" : `&n=${parte}`}`);
+    audio.current = a;
+    setParla(parte);
+    setVoceKo(false);
+    a.onended = () => audio.current === a && setParla(null);
+    a.onerror = () => {
+      if (audio.current !== a) return;
+      setParla(null);
+      setVoceKo(true);
+    };
+    a.play().catch(() => a.onerror?.(new Event("error")));
+  };
+
+  useEffect(() => () => audio.current?.pause(), []);
 
   const tocca = (s: string) => {
     setScelta(s);
@@ -230,10 +276,17 @@ export default function SommelierPage() {
                 <h2 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>{t("sommelier.advice")}</h2>
                 <span className="text-sm shrink-0" style={{ color: "var(--color-muted)" }}>{t("sommelier.in_shop")}</span>
               </div>
-              {intro && <p className="text-base mb-4" style={{ color: "var(--color-muted)" }}>{intro}</p>}
+              {intro && <p className="text-base mb-3" style={{ color: "var(--color-muted)" }}>{intro}</p>}
+              {consiglioId && (
+                <button onClick={() => leggi("tutto")} aria-pressed={parla === "tutto"} className="mb-4 min-h-[48px] px-4 rounded-xl flex items-center gap-2 text-base" style={chip(parla === "tutto")}>
+                  <Altoparlante />
+                  {parla === "tutto" ? t("sommelier.stop") : t("sommelier.listen")}
+                </button>
+              )}
+              {voceKo && <p className="text-sm mb-3" style={{ color: "#c0392b" }}>{t("sommelier.voice_error")}</p>}
               <ul className="grid gap-3">
-                {consigli.map((c) => (
-                  <li key={c.id}>
+                {consigli.map((c, i) => (
+                  <li key={c.id} className="relative">
                     <button onClick={() => apri(c)} className="w-full flex gap-4 items-center rounded-2xl p-4 text-left" style={{ background: "var(--color-surface)", border: "1px solid rgba(120,94,20,0.2)" }}>
                       <div className="w-16 h-32 shrink-0 grid place-items-center">
                         {c.bottle_image && (
@@ -241,7 +294,7 @@ export default function SommelierPage() {
                           <img src={c.bottle_image} alt="" className="max-h-32 max-w-16 object-contain" />
                         )}
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 pr-10">
                         <p className="text-lg font-semibold" style={{ color: "var(--color-text)" }}>{c.nome_vino}</p>
                         <p className="text-sm mb-2" style={{ color: "var(--color-muted)" }}>
                           {[c.produttore, c.annata !== "N.V." ? c.annata : ""].filter(Boolean).join(" · ")}
@@ -250,6 +303,17 @@ export default function SommelierPage() {
                         <span className="block text-sm mt-2" style={{ color: "var(--color-gold)" }}>{t("sommelier.open")} →</span>
                       </div>
                     </button>
+                    {consiglioId && (
+                      <button
+                        onClick={() => leggi(String(i + 1))}
+                        aria-label={`${parla === String(i + 1) ? t("sommelier.stop") : t("sommelier.listen_one")}: ${c.nome_vino}`}
+                        aria-pressed={parla === String(i + 1)}
+                        className="absolute top-2 right-2 w-11 h-11 rounded-full grid place-items-center"
+                        style={chip(parla === String(i + 1))}
+                      >
+                        <Altoparlante />
+                      </button>
+                    )}
                   </li>
                 ))}
                 {inArrivo &&

@@ -89,6 +89,10 @@
     "counter": "Le bottiglie si chiedono al banco.",
     "error": "Consiglio non riuscito: riprova.",
     "none": "Non ho trovato bottiglie adatte: prova a dirmelo in un altro modo.",
-    "back": "Indietro"
+    "back": "Indietro",
+    "listen": "Ascolta il consiglio",
+    "listen_one": "Ascolta",
+    "stop": "Ferma",
+    "voice_error": "Voce non disponibile ora."
   }
 }
