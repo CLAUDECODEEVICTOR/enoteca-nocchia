@@ -199,6 +199,8 @@ export default function SommelierPage() {
   const conStile = puoChiedere;
   const invia = () => {
     if (!puoChiedere) return;
+    // Out of the field: iOS closes the keyboard, so the bottles are not hidden behind it.
+    (document.activeElement as HTMLElement | null)?.blur();
     chiedi({ gusto: stile && stile !== "voi" ? stile : undefined, testo: testo.trim() || undefined });
   };
 
