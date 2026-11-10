@@ -278,7 +278,7 @@ export default function SommelierPage() {
             ← {t("sommelier.back")}
           </button>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-nocchia.png" alt={t("sommelier.brand")} width={110} height={29} className="block w-[98px] sm:w-[140px] h-auto" />
+          <img src="/logo-nocchia.png" alt={t("sommelier.brand")} width={110} height={28} className="block w-[98px] sm:w-[140px] h-auto" />
         </div>
 
         <h1 className="mt-8 md:mt-12 text-[40px] md:text-[54px] leading-[1.05] font-medium" style={{ fontFamily: "var(--font-playfair)", color: C.oro, textWrap: "balance" }}>
