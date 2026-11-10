@@ -277,7 +277,8 @@ export default function SommelierPage() {
           <button onClick={() => router.push("/")} className="min-h-[44px] pr-2 text-sm" style={{ color: C.muto }}>
             ← {t("sommelier.back")}
           </button>
-          <span className="hidden sm:inline text-xs font-bold uppercase" style={{ color: C.oro, letterSpacing: "0.18em" }}>{t("sommelier.brand")}</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-nocchia.png" alt={t("sommelier.brand")} width={110} height={27} className="block w-[98px] sm:w-[140px] h-auto" />
         </div>
 
         <h1 className="mt-8 md:mt-12 text-[40px] md:text-[54px] leading-[1.05] font-medium" style={{ fontFamily: "var(--font-playfair)", color: C.oro, textWrap: "balance" }}>

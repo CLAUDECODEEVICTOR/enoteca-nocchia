@@ -20,7 +20,7 @@ export default function HomePage() {
       <div className="relative z-10 flex flex-col items-center gap-6 md:gap-8 text-center max-w-lg">
         {/* The site's logo, drawn at half its pixel width so it stays sharp on the iPad's screen. */}
         <h1 className="animate-fade-in-1 m-0">
-          <img src="/logo-nocchia.png" alt="Nocchia Wine Bar" width={200} height={49} className="block w-[200px] h-auto" />
+          <img src="/logo-nocchia.png" alt="Nocchia Wine Bar" width={200} height={49} className="block w-[200px] md:w-[280px] h-auto" />
         </h1>
 
         {/* Sottotitolo */}
