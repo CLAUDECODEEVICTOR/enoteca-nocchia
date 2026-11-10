@@ -277,7 +277,8 @@ export default function SommelierPage() {
           <img src="/logo-nocchia.png" alt={t("sommelier.brand")} width={110} height={28} className="absolute left-1/2 -translate-x-1/2 block w-[98px] sm:w-[140px] h-auto" />
         </div>
 
-        <h1 className="mt-8 md:mt-12 text-[40px] md:text-[54px] leading-[1.05] font-medium" style={{ fontFamily: "var(--font-playfair)", color: C.oro, textWrap: "balance" }}>
+        {/* One line on every screen: the size follows the width, and English is longer than Italian. */}
+        <h1 className="mt-8 md:mt-12 leading-[1.05] font-medium whitespace-nowrap" style={{ fontFamily: "var(--font-playfair)", color: C.oro, fontSize: lang === "en" ? "clamp(22px, 7vw, 54px)" : "clamp(24px, 9vw, 54px)" }}>
           {t("sommelier.title")}
         </h1>
         <p className="mt-4 text-[17px] md:text-lg leading-relaxed max-w-[38ch]" style={{ color: C.muto }}>{t("sommelier.sub")}</p>
