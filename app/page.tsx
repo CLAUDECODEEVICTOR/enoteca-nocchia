@@ -18,22 +18,9 @@ export default function HomePage() {
 
       {/* Contenuto centrato con animazione staggered */}
       <div className="relative z-10 flex flex-col items-center gap-6 md:gap-8 text-center max-w-lg">
-        {/* Logo */}
-        <img
-          src="/icons/icon-192.png"
-          alt="Nocchia Wine Bar"
-          className="w-20 h-20 md:w-24 md:h-24 rounded-2xl animate-fade-in-1 shadow-md ring-1 ring-black/5"
-        />
-
-        {/* Titolo */}
-        <h1
-          className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-wide animate-fade-in-1"
-          style={{
-            fontFamily: "var(--font-playfair)",
-            color: "var(--color-gold)",
-          }}
-        >
-          Nocchia Wine Bar
+        {/* The site's logo, drawn at half its pixel width so it stays sharp on the iPad's screen. */}
+        <h1 className="animate-fade-in-1 m-0">
+          <img src="/logo-nocchia.png" alt="Nocchia Wine Bar" width={200} height={49} className="block w-[200px] h-auto" />
         </h1>
 
         {/* Sottotitolo */}
