@@ -70,7 +70,7 @@
     "sub": "Per una cena, un'occasione o un regalo: dicci cosa hai in mente e ti proponiamo tre bottiglie che trovi da noi.",
     "group_table": "Per la tavola",
     "group_occasion": "Per l'occasione",
-    "group_text": "Oppure raccontacelo",
+    "group_text": "Raccontaci cosa mangi",
     "group_style": "Che stile?",
     "choices": {
       "pesce": "Pesce",
@@ -90,7 +90,7 @@
       "leggero": "Fresco e leggero",
       "morbido": "Morbido e avvolgente",
       "intenso": "Intenso e strutturato",
-      "voi": "Sorprendimi"
+      "voi": "Mi fido di voi"
     },
     "loading": "Cerchiamo tra le nostre bottiglie…",
     "advice": "Tre bottiglie per voi",

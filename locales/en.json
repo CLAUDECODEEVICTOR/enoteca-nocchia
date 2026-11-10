@@ -70,7 +70,7 @@
     "sub": "For a dinner, an occasion or a gift: tell us what you have in mind and we'll suggest three bottles from the shop.",
     "group_table": "For the table",
     "group_occasion": "For the occasion",
-    "group_text": "Or tell us",
+    "group_text": "Tell us what you’re eating",
     "group_style": "Which style?",
     "choices": {
       "pesce": "Fish",
@@ -90,7 +90,7 @@
       "leggero": "Fresh and light",
       "morbido": "Soft and round",
       "intenso": "Intense and full",
-      "voi": "Surprise me"
+      "voi": "I trust you"
     },
     "loading": "Looking through the bottles in the shop…",
     "advice": "Three bottles for you",

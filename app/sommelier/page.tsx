@@ -15,7 +15,6 @@ interface Consiglio {
   perche: string;
 }
 
-const TAVOLA = ["pesce", "carne", "pizza", "formaggi", "dolci"] as const;
 const STILI = ["leggero", "morbido", "intenso", "voi"] as const;
 // A gift or an after-dinner bottle is not chosen by body: the style question shows only with food or words.
 
@@ -44,8 +43,8 @@ type Riconoscimento = { lang: string; interimResults: boolean; onresult: (e: { r
 export default function SommelierPage() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const [scelte, setScelte] = useState<string[]>([]);
-  const [stile, setStile] = useState<string>("voi");
+  // No style chosen until the customer picks one: nothing is decided for them.
+  const [stile, setStile] = useState<string>("");
   const [testo, setTesto] = useState("");
   const [stato, setStato] = useState<"scegli" | "carica" | "pronto" | "errore" | "nessuno">("scegli");
   const [intro, setIntro] = useState("");
@@ -92,14 +91,13 @@ export default function SommelierPage() {
   // Back from a card: the three bottles come back as they were, not an empty page.
   useEffect(() => {
     if (sessionStorage.getItem("sommelier_torna") !== "1") return;
-    let s: { scelte: string[]; stile: string; testo: string; intro: string; consigli: Consiglio[]; visti: string[]; consiglioId: number | null; ultima: typeof ultima.current } | null = null;
+    let s: { stile: string; testo: string; intro: string; consigli: Consiglio[]; visti: string[]; consiglioId: number | null; ultima: typeof ultima.current } | null = null;
     try { s = JSON.parse(sessionStorage.getItem("sommelier_ultimo") || "null"); } catch {}
     if (!s?.consigli?.length) return;
     const ultimo = s;
     const id = requestAnimationFrame(() => {
       sessionStorage.removeItem("sommelier_torna");
       ultima.current = ultimo.ultima;
-      setScelte(ultimo.scelte);
       setStile(ultimo.stile);
       setTesto(ultimo.testo);
       setIntro(ultimo.intro);
@@ -197,12 +195,11 @@ export default function SommelierPage() {
 
   useEffect(() => () => audio.current?.pause(), []);
 
-  const tocca = (s: string) => setScelte((v) => (v.includes(s) ? v.filter((x) => x !== s) : [...v, s]));
-  const puoChiedere = scelte.length > 0 || testo.trim().length > 0;
-  const conStile = testo.trim().length > 0 || scelte.length > 0;
+  const puoChiedere = testo.trim().length > 0;
+  const conStile = puoChiedere;
   const invia = () => {
     if (!puoChiedere) return;
-    chiedi({ scelte, gusto: conStile && stile !== "voi" ? stile : undefined, testo: testo.trim() || undefined });
+    chiedi({ gusto: stile && stile !== "voi" ? stile : undefined, testo: testo.trim() || undefined });
   };
 
   const detta = () => {
@@ -230,7 +227,7 @@ export default function SommelierPage() {
     sessionStorage.removeItem("lastScanThumbnail");
     sessionStorage.removeItem("cronometro");
     sessionStorage.setItem(`scan_saved_${d.it?.nome_vino}_${d.it?.annata}`, "1");
-    sessionStorage.setItem("sommelier_ultimo", JSON.stringify({ scelte, stile, testo, intro, consigli, visti, consiglioId, ultima: ultima.current }));
+    sessionStorage.setItem("sommelier_ultimo", JSON.stringify({ stile, testo, intro, consigli, visti, consiglioId, ultima: ultima.current }));
     sessionStorage.setItem("indietro", "/sommelier");
     sessionStorage.setItem("consiglio_perche", c.perche);
     router.push("/result");
@@ -244,14 +241,14 @@ export default function SommelierPage() {
   const etichetta = "block text-xs font-bold uppercase mb-3";
   const etichettaStile = { color: C.muto, letterSpacing: "0.14em" };
 
-  const opzioni = (voci: readonly string[], gruppo: "choices" | "taste", colonne: string) => (
+  const opzioni = (voci: readonly string[], gruppo: "taste", colonne: string) => (
     <div className={`grid gap-2.5 ${colonne}`}>
       {voci.map((v) => {
-        const attiva = gruppo === "choices" ? scelte.includes(v) : stile === v;
+        const attiva = stile === v;
         return (
           <button
             key={v}
-            onClick={() => (gruppo === "choices" ? tocca(v) : setStile(v))}
+            onClick={() => setStile(attiva ? "" : v)}
             aria-pressed={attiva}
             className="min-h-[56px] px-3 sm:px-4 rounded-[14px] text-[15px] sm:text-base font-medium leading-tight flex items-center justify-between gap-1.5 text-left transition-colors duration-150"
             style={opzione(attiva)}
@@ -286,11 +283,6 @@ export default function SommelierPage() {
         <p className="mt-4 text-[17px] md:text-lg leading-relaxed max-w-[38ch]" style={{ color: C.muto }}>{t("sommelier.sub")}</p>
 
         <section className="mt-10">
-          <h2 className={etichetta} style={etichettaStile}>{t("sommelier.group_table")}</h2>
-          {opzioni(TAVOLA, "choices", "grid-cols-3 sm:grid-cols-5")}
-          <p className="mt-2.5 text-sm" style={{ color: C.muto }}>{t("sommelier.multi")}</p>
-        </section>
-        <section className="mt-7">
           <h2 className={etichetta} style={etichettaStile}>{t("sommelier.group_text")}</h2>
           <form
             onSubmit={(e) => {
