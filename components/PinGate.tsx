@@ -8,7 +8,7 @@ export default function PinGate({ children }: { children: React.ReactNode }) {
   return (
     <Gate
       scope="app"
-      title="Enoteca Nocchia"
+      title="Nocchia Wine Bar"
       subtitle="Inserisci il PIN per accedere"
     >
       {children}

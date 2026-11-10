@@ -65,9 +65,9 @@
   },
   "sommelier": {
     "cta": "Chiedi un consiglio",
-    "brand": "Enoteca Nocchia",
+    "brand": "Nocchia Wine Bar",
     "title": "Che bottiglia cerchi?",
-    "sub": "Per una cena, un'occasione o un regalo: dicci cosa hai in mente e ti proponiamo tre bottiglie che trovi in enoteca.",
+    "sub": "Per una cena, un'occasione o un regalo: dicci cosa hai in mente e ti proponiamo tre bottiglie che trovi da noi.",
     "group_table": "Per la tavola",
     "group_occasion": "Per l'occasione",
     "group_text": "Oppure raccontacelo",
@@ -92,7 +92,7 @@
       "intenso": "Intenso e strutturato",
       "voi": "Sorprendimi"
     },
-    "loading": "Cerchiamo tra le bottiglie in enoteca…",
+    "loading": "Cerchiamo tra le nostre bottiglie…",
     "advice": "Tre bottiglie per voi",
     "open": "Apri la scheda",
     "more": "Altre tre bottiglie",
