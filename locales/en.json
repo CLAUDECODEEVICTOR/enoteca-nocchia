@@ -70,7 +70,7 @@
     "sub": "For a dinner, an occasion or a gift: tell us what you have in mind and we'll suggest three bottles from the shop.",
     "group_table": "For the table",
     "group_occasion": "For the occasion",
-    "group_text": "Tell us what you’re eating",
+    "group_text": "Tell us what you have in mind",
     "group_style": "Which style?",
     "choices": {
       "pesce": "Fish",
@@ -82,7 +82,7 @@
       "dopocena": "After dinner",
       "regalo": "Gift"
     },
-    "placeholder": "E.g. dinner with friends, baked fish",
+    "placeholder": "E.g. barbecue, fish dinner, a gift",
     "send": "Show three bottles",
     "dictate": "Dictate",
     "listening": "Listening…",
@@ -109,6 +109,7 @@
     "slow": "Just a few more seconds…",
     "idle_title": "Still there?",
     "idle_text": "We’ll go back to the start shortly for the next customer.",
-    "idle_stay": "Continue"
+    "idle_stay": "Continue",
+    "voice_hint": "You can also just say it."
   }
 }

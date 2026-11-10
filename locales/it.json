@@ -70,7 +70,7 @@
     "sub": "Per una cena, un'occasione o un regalo: dicci cosa hai in mente e ti proponiamo tre bottiglie che trovi da noi.",
     "group_table": "Per la tavola",
     "group_occasion": "Per l'occasione",
-    "group_text": "Raccontaci cosa mangi",
+    "group_text": "Raccontaci cosa hai in mente",
     "group_style": "Che stile?",
     "choices": {
       "pesce": "Pesce",
@@ -82,7 +82,7 @@
       "dopocena": "Dopo cena",
       "regalo": "Regalo"
     },
-    "placeholder": "Es. cena tra amici, pesce al forno",
+    "placeholder": "Es. grigliata, cena di pesce, un regalo",
     "send": "Mostra tre bottiglie",
     "dictate": "Detta",
     "listening": "Ti ascolto…",
@@ -109,6 +109,7 @@
     "slow": "Ancora qualche secondo…",
     "idle_title": "Sei ancora qui?",
     "idle_text": "Tra poco si torna all’inizio per il prossimo cliente.",
-    "idle_stay": "Continua"
+    "idle_stay": "Continua",
+    "voice_hint": "Puoi dirlo anche a voce."
   }
 }

@@ -263,11 +263,11 @@ export default function SommelierPage() {
 
   return (
     <main
-      className="min-h-dvh px-6 md:px-12"
+      className="min-h-dvh px-6 md:px-12 flex flex-col"
       style={{ background: C.carta, color: C.inchiostro, paddingTop: "calc(env(safe-area-inset-top) + 16px)", paddingBottom: "calc(env(safe-area-inset-bottom) + 40px)" }}
     >
       <LanguageToggle />
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto w-full flex-1 flex flex-col">
         <div className="relative flex items-center min-h-[44px]">
           <button onClick={() => router.push("/")} className="min-h-[44px] pr-2 text-sm" style={{ color: C.muto }}>
             ← {t("sommelier.back")}
@@ -277,6 +277,9 @@ export default function SommelierPage() {
           <img src="/logo-nocchia.png" alt={t("sommelier.brand")} width={110} height={28} className="absolute left-1/2 -translate-x-1/2 block w-[98px] sm:w-[140px] h-auto" />
         </div>
 
+        {/* Before the first advice the form sits in the middle of the iPad screen, not at the top
+            with half the page empty below; once bottles are asked for it goes back to the normal flow. */}
+        <div className={stato === "scegli" ? "md:my-auto md:pb-[6vh]" : ""}>
         {/* One line on every screen: the size follows the width, and English is longer than Italian. */}
         <h1 className="mt-8 md:mt-12 leading-[1.05] font-medium whitespace-nowrap" style={{ fontFamily: "var(--font-playfair)", color: C.oro, fontSize: lang === "en" ? "clamp(22px, 7vw, 54px)" : "clamp(24px, 9vw, 54px)" }}>
           {t("sommelier.title")}
@@ -308,6 +311,7 @@ export default function SommelierPage() {
               </button>
             )}
           </form>
+          {puoDettare && <p className="mt-2.5 text-sm" style={{ color: C.muto }}>{t("sommelier.voice_hint")}</p>}
         </section>
 
         {conStile && (
@@ -321,7 +325,7 @@ export default function SommelierPage() {
           onClick={invia}
           disabled={!puoChiedere || inArrivo}
           className="mt-8 w-full min-h-[56px] rounded-[14px] text-base md:text-lg font-medium transition-colors duration-150"
-          style={puoChiedere ? { background: C.vino, color: "#fff" } : { background: C.crema, color: C.muto }}
+          style={puoChiedere ? { background: C.vino, color: "#fff" } : { background: C.vino, color: "#fff", opacity: 0.4 }}
         >
           {inArrivo ? (
             <span className="inline-flex items-center gap-3">
@@ -332,6 +336,7 @@ export default function SommelierPage() {
             t("sommelier.send")
           )}
         </button>
+        </div>
 
         <div ref={risultati} className="scroll-mt-6">
           {stato === "errore" && <p className="mt-8 text-base" style={{ color: "#c0392b" }}>{t("sommelier.error")}</p>}
