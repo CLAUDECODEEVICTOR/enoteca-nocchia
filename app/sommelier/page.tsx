@@ -16,10 +16,8 @@ interface Consiglio {
 }
 
 const TAVOLA = ["pesce", "carne", "pizza", "formaggi", "dolci"] as const;
-const OCCASIONE = ["aperitivo", "dopocena", "regalo"] as const;
 const STILI = ["leggero", "morbido", "intenso", "voi"] as const;
 // A gift or an after-dinner bottle is not chosen by body: the style question shows only with food or words.
-const SENZA_STILE = new Set(["regalo", "dopocena"]);
 
 // This page's palette: warm paper instead of cold white, ink instead of pure black.
 const C = { carta: "#FCFBF8", inchiostro: "#302D28", muto: "#746E65", linea: "#E8E1D6", crema: "#F5F2EB", oro: "var(--color-gold)", vino: "var(--color-bordeaux)" };
@@ -201,7 +199,7 @@ export default function SommelierPage() {
 
   const tocca = (s: string) => setScelte((v) => (v.includes(s) ? v.filter((x) => x !== s) : [...v, s]));
   const puoChiedere = scelte.length > 0 || testo.trim().length > 0;
-  const conStile = testo.trim().length > 0 || scelte.some((s) => !SENZA_STILE.has(s));
+  const conStile = testo.trim().length > 0 || scelte.length > 0;
   const invia = () => {
     if (!puoChiedere) return;
     chiedi({ scelte, gusto: conStile && stile !== "voi" ? stile : undefined, testo: testo.trim() || undefined });
@@ -273,12 +271,13 @@ export default function SommelierPage() {
     >
       <LanguageToggle />
       <div className="max-w-3xl mx-auto">
-        <div className="flex items-center gap-4 min-h-[44px]">
+        <div className="relative flex items-center min-h-[44px]">
           <button onClick={() => router.push("/")} className="min-h-[44px] pr-2 text-sm" style={{ color: C.muto }}>
             ← {t("sommelier.back")}
           </button>
+          {/* Centred on the page, between the back link and the language toggle. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-nocchia.png" alt={t("sommelier.brand")} width={110} height={28} className="block w-[98px] sm:w-[140px] h-auto" />
+          <img src="/logo-nocchia.png" alt={t("sommelier.brand")} width={110} height={28} className="absolute left-1/2 -translate-x-1/2 block w-[98px] sm:w-[140px] h-auto" />
         </div>
 
         <h1 className="mt-8 md:mt-12 text-[40px] md:text-[54px] leading-[1.05] font-medium" style={{ fontFamily: "var(--font-playfair)", color: C.oro, textWrap: "balance" }}>
@@ -289,10 +288,6 @@ export default function SommelierPage() {
         <section className="mt-10">
           <h2 className={etichetta} style={etichettaStile}>{t("sommelier.group_table")}</h2>
           {opzioni(TAVOLA, "choices", "grid-cols-3 sm:grid-cols-5")}
-        </section>
-        <section className="mt-7">
-          <h2 className={etichetta} style={etichettaStile}>{t("sommelier.group_occasion")}</h2>
-          {opzioni(OCCASIONE, "choices", "grid-cols-3")}
           <p className="mt-2.5 text-sm" style={{ color: C.muto }}>{t("sommelier.multi")}</p>
         </section>
         <section className="mt-7">
