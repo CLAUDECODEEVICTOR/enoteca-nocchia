@@ -3,6 +3,7 @@ import { Playfair_Display, DM_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import PinGate from "@/components/PinGate";
 import Inattivita from "@/components/Inattivita";
+import BloccaZoom from "@/components/BloccaZoom";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -34,6 +35,8 @@ export const viewport: Viewport = {
   themeColor: "#3E6B2A",
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -66,6 +69,7 @@ export default function RootLayout({
         `}} />
         <PinGate>{children}</PinGate>
         <Inattivita />
+        <BloccaZoom />
         {/* Fuori dal PinGate: così conta anche chi si ferma alla schermata del PIN.
             Analytics di Vercel non usa cookie e non profila i singoli visitatori. */}
         <Analytics />

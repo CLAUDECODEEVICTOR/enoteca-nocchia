@@ -19,6 +19,11 @@
   --font-serif: var(--font-playfair);
 }
 
+/* A kiosk page: no double-tap zoom (the pinch is stopped in BloccaZoom). */
+html {
+  touch-action: manipulation;
+}
+
 body {
   background: var(--color-bg);
   color: var(--color-text);
