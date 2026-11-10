@@ -28,7 +28,7 @@ interface Scan {
 }
 
 const sec = (ms?: number | null) => (ms === undefined || ms === null ? "-" : `${(ms / 1000).toFixed(1).replace(".", ",")} s`);
-const cardStyle = { background: "var(--color-surface)", border: "1px solid rgba(120,94,20,0.2)" };
+const cardStyle = { background: "var(--color-surface)", border: "1px solid rgba(17,17,17,0.2)" };
 
 function Tempo({ titolo, riga, forte }: { titolo: string; riga?: Riga; forte?: boolean }) {
   return (
@@ -129,7 +129,7 @@ function Cronometro() {
             <h2 className="text-lg font-medium">Ultimi scan</h2>
             <ul className="rounded-xl overflow-hidden" style={cardStyle}>
               {ultimi.map((s) => (
-                <li key={s.id} className="flex items-center gap-3 px-3 py-2 text-sm" style={{ borderTop: "1px solid rgba(120,94,20,0.12)" }}>
+                <li key={s.id} className="flex items-center gap-3 px-3 py-2 text-sm" style={{ borderTop: "1px solid rgba(17,17,17,0.12)" }}>
                   <span className="w-14 shrink-0 font-medium">{sec(s.ms)}</span>
                   {s.ms_scheda !== null && (
                     <span className="shrink-0 text-xs" style={{ color: "var(--color-muted)" }}>

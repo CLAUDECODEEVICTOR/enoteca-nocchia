@@ -19,7 +19,7 @@ const STILI = ["leggero", "morbido", "intenso", "voi"] as const;
 // A gift or an after-dinner bottle is not chosen by body: the style question shows only with food or words.
 
 // This page's palette: warm paper instead of cold white, ink instead of pure black.
-const C = { carta: "#FCFBF8", inchiostro: "#302D28", muto: "#746E65", linea: "#E8E1D6", crema: "#F5F2EB", oro: "var(--color-gold)", vino: "var(--color-bordeaux)" };
+const C = { carta: "#FFFFFF", inchiostro: "#111111", muto: "#66625D", linea: "#E3E0DA", crema: "#F4F2ED", oro: "var(--color-gold)", vino: "var(--color-bordeaux)" };
 
 function Spunta() {
   return (
@@ -250,7 +250,7 @@ export default function SommelierPage() {
             key={v}
             onClick={() => setStile(attiva ? "" : v)}
             aria-pressed={attiva}
-            className="min-h-[56px] px-3 sm:px-4 rounded-[14px] text-[15px] sm:text-base font-medium leading-tight flex items-center justify-between gap-1.5 text-left transition-colors duration-150"
+            className="min-h-[56px] px-3 sm:px-4 rounded text-[15px] sm:text-base font-medium leading-tight flex items-center justify-between gap-1.5 text-left transition-colors duration-150"
             style={opzione(attiva)}
           >
             <span>{t(`sommelier.${gruppo}.${v}`)}</span>
@@ -281,7 +281,7 @@ export default function SommelierPage() {
             with half the page empty below; once bottles are asked for it goes back to the normal flow. */}
         <div className={stato === "scegli" ? "md:my-auto md:pb-[6vh]" : ""}>
         {/* One line on every screen: the size follows the width, and English is longer than Italian. */}
-        <h1 className="mt-8 md:mt-12 leading-[1.05] font-medium whitespace-nowrap" style={{ fontFamily: "var(--font-playfair)", color: C.oro, fontSize: lang === "en" ? "clamp(22px, 7vw, 54px)" : "clamp(24px, 9vw, 54px)" }}>
+        <h1 className="mt-8 md:mt-12 leading-[1.05] font-medium whitespace-nowrap" style={{ fontFamily: "var(--font-titoli)", color: C.oro, fontSize: lang === "en" ? "clamp(22px, 7vw, 54px)" : "clamp(24px, 9vw, 54px)" }}>
           {t("sommelier.title")}
         </h1>
         <p className="mt-4 text-[17px] md:text-lg leading-relaxed max-w-[38ch]" style={{ color: C.muto }}>{t("sommelier.sub")}</p>
@@ -293,7 +293,7 @@ export default function SommelierPage() {
               e.preventDefault();
               invia();
             }}
-            className="flex items-center gap-2 rounded-[14px] p-1.5 pl-4 bg-white transition-colors duration-150 focus-within:border-[var(--color-bordeaux)]"
+            className="flex items-center gap-2 rounded p-1.5 pl-4 bg-white transition-colors duration-150 focus-within:border-[var(--color-bordeaux)]"
             style={{ border: `1.5px solid ${C.linea}` }}
           >
             <input
@@ -306,7 +306,7 @@ export default function SommelierPage() {
               style={{ color: C.inchiostro }}
             />
             {puoDettare && (
-              <button type="button" onClick={detta} aria-label={t("sommelier.dictate")} aria-pressed={ascolta} className="w-12 h-12 rounded-[10px] grid place-items-center shrink-0 transition-colors duration-150" style={{ background: ascolta ? C.vino : C.crema, color: ascolta ? "#fff" : C.vino }}>
+              <button type="button" onClick={detta} aria-label={t("sommelier.dictate")} aria-pressed={ascolta} className="w-12 h-12 rounded grid place-items-center shrink-0 transition-colors duration-150" style={{ background: ascolta ? C.vino : C.crema, color: ascolta ? "#fff" : C.vino }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></svg>
               </button>
             )}
@@ -324,7 +324,7 @@ export default function SommelierPage() {
         <button
           onClick={invia}
           disabled={!puoChiedere || inArrivo}
-          className="mt-8 w-full min-h-[56px] rounded-[14px] text-base md:text-lg font-medium transition-colors duration-150"
+          className="mt-8 w-full min-h-[56px] rounded text-base md:text-lg font-medium transition-colors duration-150"
           style={puoChiedere ? { background: C.vino, color: "#fff" } : { background: C.vino, color: "#fff", opacity: 0.4 }}
         >
           {inArrivo ? (
@@ -344,11 +344,11 @@ export default function SommelierPage() {
           {(stato === "pronto" || stato === "carica") && (
             <section className="mt-14">
               <div className="flex items-end justify-between gap-4 flex-wrap">
-                <h2 className="text-[30px] md:text-4xl font-medium leading-tight" style={{ fontFamily: "var(--font-playfair)", color: C.inchiostro }}>
+                <h2 className="text-[30px] md:text-4xl font-medium leading-tight" style={{ fontFamily: "var(--font-titoli)", color: C.inchiostro }}>
                   {t("sommelier.advice")}
                 </h2>
                 {consiglioId && (
-                  <button onClick={() => leggi("tutto")} aria-pressed={parla === "tutto"} className="min-h-[48px] px-4 rounded-[12px] flex items-center gap-2 text-base font-medium transition-colors duration-150" style={parla === "tutto" ? { background: C.vino, color: "#fff", border: `1.5px solid ${C.vino}` } : { background: "#fff", color: C.vino, border: `1.5px solid ${C.vino}` }}>
+                  <button onClick={() => leggi("tutto")} aria-pressed={parla === "tutto"} className="min-h-[48px] px-4 rounded flex items-center gap-2 text-base font-medium transition-colors duration-150" style={parla === "tutto" ? { background: C.vino, color: "#fff", border: `1.5px solid ${C.vino}` } : { background: "#fff", color: C.vino, border: `1.5px solid ${C.vino}` }}>
                     <Altoparlante />
                     {parla === "tutto" ? t("sommelier.stop") : t("sommelier.listen")}
                   </button>
@@ -363,8 +363,8 @@ export default function SommelierPage() {
 
               <ol className="mt-6 grid gap-3">
                 {consigli.map((c, i) => (
-                  <li key={c.id} className="rounded-2xl bg-white p-4 md:p-5 flex gap-4 md:gap-5" style={{ border: `1px solid ${C.linea}`, animation: "fadeInUp 0.3s ease both" }}>
-                    <button onClick={() => apri(c)} aria-label={`${t("sommelier.open")}: ${c.nome_vino}`} className="w-[84px] md:w-[96px] h-[150px] md:h-[170px] shrink-0 rounded-xl grid place-items-center" style={{ background: C.crema }}>
+                  <li key={c.id} className="rounded-lg bg-white p-4 md:p-5 flex gap-4 md:gap-5" style={{ border: `1px solid ${C.linea}`, animation: "fadeInUp 0.3s ease both" }}>
+                    <button onClick={() => apri(c)} aria-label={`${t("sommelier.open")}: ${c.nome_vino}`} className="w-[84px] md:w-[96px] h-[150px] md:h-[170px] shrink-0 rounded-lg grid place-items-center" style={{ background: C.crema }}>
                       {c.bottle_image && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={c.bottle_image} alt="" className="max-h-[136px] md:max-h-[156px] max-w-[72px] md:max-w-[84px] object-contain" />
@@ -393,8 +393,8 @@ export default function SommelierPage() {
                 ))}
                 {inArrivo &&
                   Array.from({ length: Math.max(0, 3 - consigli.length) }, (_, i) => (
-                    <li key={`attesa-${i}`} aria-hidden="true" className="rounded-2xl bg-white p-4 md:p-5 flex gap-4 md:gap-5 animate-pulse" style={{ border: `1px solid ${C.linea}` }}>
-                      <div className="w-[84px] md:w-[96px] h-[150px] md:h-[170px] shrink-0 rounded-xl" style={{ background: C.crema }} />
+                    <li key={`attesa-${i}`} aria-hidden="true" className="rounded-lg bg-white p-4 md:p-5 flex gap-4 md:gap-5 animate-pulse" style={{ border: `1px solid ${C.linea}` }}>
+                      <div className="w-[84px] md:w-[96px] h-[150px] md:h-[170px] shrink-0 rounded-lg" style={{ background: C.crema }} />
                       <div className="grow grid content-start gap-2.5 pt-5">
                         <div className="h-5 w-1/2 rounded" style={{ background: C.crema }} />
                         <div className="h-4 w-1/3 rounded" style={{ background: C.crema }} />
@@ -404,7 +404,7 @@ export default function SommelierPage() {
                   ))}
               </ol>
               <div className="mt-6" style={{ visibility: inArrivo ? "hidden" : "visible" }}>
-                <p className="rounded-2xl px-5 py-5 text-center text-xl md:text-2xl leading-snug" style={{ background: C.crema, color: C.inchiostro, fontFamily: "var(--font-playfair)" }}>
+                <p className="rounded-lg px-5 py-5 text-center text-xl md:text-2xl leading-snug" style={{ background: C.crema, color: C.inchiostro, fontFamily: "var(--font-titoli)" }}>
                   {t("sommelier.counter")}
                 </p>
                 <div className="mt-3 text-center">

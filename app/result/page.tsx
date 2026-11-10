@@ -170,7 +170,7 @@ export default function ResultPage() {
   if (!bilingualWine)
     return (
       <div className="min-h-dvh flex flex-col items-center justify-center gap-4 px-6 text-center" style={{ background: "var(--color-bg)" }}>
-        <h1 className="text-3xl font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--color-gold)" }}>Nocchia Wine Bar</h1>
+        <h1 className="text-3xl font-bold" style={{ fontFamily: "var(--font-titoli)", color: "var(--color-gold)" }}>Nocchia Wine Bar</h1>
         <button onClick={() => router.push("/")} className="min-h-[48px] px-5 text-base underline underline-offset-4" style={{ color: "var(--color-muted)" }}>
           {t("result.go_home")}
         </button>
@@ -200,7 +200,7 @@ export default function ResultPage() {
         <h2
           className="text-2xl md:text-3xl font-bold animate-fade-in-2"
           style={{
-            fontFamily: "var(--font-playfair)",
+            fontFamily: "var(--font-titoli)",
             color: "var(--color-gold)",
           }}
         >
@@ -216,7 +216,7 @@ export default function ResultPage() {
 
         <button
           onClick={() => router.push("/")}
-          className="mt-4 px-8 py-4 rounded-xl text-base md:text-lg font-medium transition-all duration-300 hover:scale-105 active:scale-95 animate-fade-in-3"
+          className="mt-4 px-8 py-4 rounded-lg text-base md:text-lg font-medium transition-all duration-300 hover:scale-105 active:scale-95 animate-fade-in-3"
           style={{
             background: "var(--color-bordeaux)",
             color: "#FFFFFF",
@@ -245,7 +245,7 @@ export default function ResultPage() {
           <img
             src={bottleImage}
             alt={wine.nome_vino}
-            className="object-contain drop-shadow-xl rounded-2xl"
+            className="object-contain drop-shadow-xl rounded-lg"
             style={{ maxHeight: "340px", maxWidth: "260px", width: "auto", height: "auto" }}
             onLoad={() => cronometro.fotoVisibile(true)}
             onError={() => {
@@ -263,7 +263,7 @@ export default function ResultPage() {
           <img
             src={scanThumbnail.startsWith("data:") ? scanThumbnail : `data:image/jpeg;base64,${scanThumbnail}`}
             alt={wine.nome_vino}
-            className="object-contain rounded-2xl shadow-lg"
+            className="object-contain rounded-lg shadow-lg"
             style={{ maxHeight: "340px", maxWidth: "260px", width: "auto", height: "auto" }}
           />
           <figcaption className="text-sm" style={{ color: "var(--color-muted)" }}>{t("result.your_photo")}</figcaption>
@@ -274,7 +274,7 @@ export default function ResultPage() {
         <div className="max-w-2xl mx-auto">
           {/* Wine Card */}
           <WineCard wine={wine} nota={perche ? (
-            <div className="rounded-xl p-4 md:p-5 bg-white" style={{ border: "1px solid rgba(62,107,42,0.3)", borderLeft: "4px solid var(--color-bordeaux)" }}>
+            <div className="rounded-lg p-4 md:p-5 bg-white" style={{ border: "1px solid rgba(62,107,42,0.3)", borderLeft: "4px solid var(--color-bordeaux)" }}>
               <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--color-bordeaux)" }}>{t("result.why_label")}</p>
               <p className="mt-1.5 text-base md:text-[17px] leading-relaxed" style={{ color: "var(--color-text)" }}>{perche}</p>
             </div>
@@ -293,10 +293,10 @@ export default function ResultPage() {
 
           {perche !== null ? (
             <div className="mt-8 mb-8 text-center">
-              <p className="text-lg md:text-xl" style={{ fontFamily: "var(--font-playfair)", color: "var(--color-text)" }}>{t("result.ask_counter")}</p>
+              <p className="text-lg md:text-xl" style={{ fontFamily: "var(--font-titoli)", color: "var(--color-text)" }}>{t("result.ask_counter")}</p>
               <button
                 onClick={() => tornaIndietro(router)}
-                className="mt-4 w-full min-h-[52px] py-4 rounded-xl text-base md:text-lg font-medium"
+                className="mt-4 w-full min-h-[52px] py-4 rounded-lg text-base md:text-lg font-medium"
                 style={{ background: "var(--color-bordeaux)", color: "#FFFFFF" }}
               >
                 ← {t("result.back_advice")}
@@ -306,7 +306,7 @@ export default function ResultPage() {
           <div className="mt-8 mb-8">
             <button
               onClick={() => router.push("/")}
-              className="w-full min-h-[52px] py-4 rounded-xl text-base md:text-lg font-medium transition-all duration-300 hover:scale-[1.02] active:scale-95 active:brightness-90"
+              className="w-full min-h-[52px] py-4 rounded-lg text-base md:text-lg font-medium transition-all duration-300 hover:scale-[1.02] active:scale-95 active:brightness-90"
               style={{
                 background: "var(--color-bordeaux)",
                 color: "#FFFFFF",

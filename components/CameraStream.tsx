@@ -109,7 +109,7 @@ export default function CameraStream({ onCapture, instruction }: CameraStreamPro
             setCameraError(null);
             setTentativo((n) => n + 1);
           }}
-          className="min-h-[52px] px-8 rounded-xl font-medium text-white"
+          className="min-h-[52px] px-8 rounded-lg font-medium text-white"
           style={{ background: "var(--color-bordeaux)" }}
         >
           {t("error.camera_retry")}
@@ -154,7 +154,7 @@ export default function CameraStream({ onCapture, instruction }: CameraStreamPro
           style={{
             background: "rgba(255,255,255,0.9)",
             borderColor: "var(--color-gold)",
-            boxShadow: "0 0 20px rgba(120,94,20,0.3)",
+            boxShadow: "0 0 20px rgba(17,17,17,0.3)",
           }}
         />
       </div>

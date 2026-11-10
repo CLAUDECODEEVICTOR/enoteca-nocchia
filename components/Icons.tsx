@@ -30,7 +30,7 @@ export function BolloIcona({ children }: { children: ReactNode }) {
   return (
     <span
       className="w-10 h-10 shrink-0 rounded-full grid place-items-center"
-      style={{ background: "#fff", border: "1px solid rgba(120,94,20,0.22)", color: "var(--color-gold)" }}
+      style={{ background: "#fff", border: "1px solid rgba(17,17,17,0.22)", color: "var(--color-gold)" }}
     >
       {children}
     </span>

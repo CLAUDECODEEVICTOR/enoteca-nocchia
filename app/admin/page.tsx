@@ -29,7 +29,7 @@ function Admin() {
       className="min-h-dvh flex flex-col items-center justify-center gap-6 p-6"
       style={{ background: "var(--color-bg)", paddingTop: "calc(env(safe-area-inset-top) + 24px)", paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}
     >
-      <h1 className="text-3xl md:text-4xl font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--color-gold)" }}>
+      <h1 className="text-3xl md:text-4xl font-bold" style={{ fontFamily: "var(--font-titoli)", color: "var(--color-gold)" }}>
         Admin
       </h1>
       <nav className="w-full max-w-md grid gap-3">
@@ -38,7 +38,7 @@ function Admin() {
             key={a.href}
             onClick={() => router.push(a.href)}
             className="min-h-[80px] rounded-xl p-4 text-left"
-            style={{ background: "var(--color-surface)", border: "1px solid rgba(120,94,20,0.25)" }}
+            style={{ background: "var(--color-surface)", border: "1px solid rgba(17,17,17,0.25)" }}
           >
             <span className="block text-lg font-medium" style={{ color: "var(--color-text)" }}>{a.nome}</span>
             <span className="block text-sm mt-1" style={{ color: "var(--color-muted)" }}>{a.testo}</span>

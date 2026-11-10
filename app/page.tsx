@@ -42,7 +42,7 @@ export default function HomePage() {
         {/* CTA */}
         <button
           onClick={() => router.push("/scan")}
-          className="w-full max-w-xs px-8 py-4 rounded-xl text-base md:text-lg font-medium transition-all duration-300 hover:scale-[1.02] active:scale-95 active:brightness-90 animate-fade-in-3"
+          className="w-full max-w-xs px-8 py-4 rounded-lg text-base md:text-lg font-medium transition-all duration-300 hover:scale-[1.02] active:scale-95 active:brightness-90 animate-fade-in-3"
           style={{
             background: "var(--color-bordeaux)",
             color: "#FFFFFF",
@@ -54,7 +54,7 @@ export default function HomePage() {
 
         <button
           onClick={() => router.push("/sommelier")}
-          className="w-full max-w-xs -mt-2 px-8 py-4 rounded-xl text-base md:text-lg font-medium transition-all duration-300 active:scale-95 animate-fade-in-3"
+          className="w-full max-w-xs -mt-2 px-8 py-4 rounded-lg text-base md:text-lg font-medium transition-all duration-300 active:scale-95 animate-fade-in-3"
           style={{ background: "transparent", color: "var(--color-bordeaux)", border: "1px solid var(--color-bordeaux)" }}
         >
           {t("sommelier.cta")}

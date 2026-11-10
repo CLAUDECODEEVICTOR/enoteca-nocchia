@@ -57,7 +57,7 @@ function FeedbackContent() {
             <button onClick={() => router.push("/admin")} className="min-h-[44px] pr-3 text-sm" style={{ color: "var(--color-muted)" }}>
               ← Admin
             </button>
-            <h1 className="text-3xl md:text-4xl font-bold mb-1" style={{ fontFamily: "var(--font-playfair)", color: "var(--color-gold)" }}>
+            <h1 className="text-3xl md:text-4xl font-bold mb-1" style={{ fontFamily: "var(--font-titoli)", color: "var(--color-gold)" }}>
               Feedback scansioni
             </h1>
             <p className="text-sm" style={{ color: "var(--color-muted)" }}>
@@ -74,7 +74,7 @@ function FeedbackContent() {
                 style={{
                   background: filter === f ? "var(--color-bordeaux)" : "var(--color-surface)",
                   color: filter === f ? "#FFFFFF" : "var(--color-text)",
-                  border: "1px solid rgba(120,94,20,0.3)",
+                  border: "1px solid rgba(17,17,17,0.3)",
                 }}
               >
                 {f === "all" ? "Tutti" : f === "wrong" ? "Sbagliati" : "Corretti"}
@@ -110,7 +110,7 @@ function FeedbackContent() {
                   className="rounded-xl overflow-hidden transition-all"
                   style={{
                     background: "var(--color-surface)",
-                    border: "1px solid rgba(120,94,20,0.2)",
+                    border: "1px solid rgba(17,17,17,0.2)",
                   }}
                 >
                   <button
@@ -192,7 +192,7 @@ function Field({ label, value, mono }: { label: string; value: string; mono?: bo
         className="rounded-lg p-2 whitespace-pre-wrap break-words"
         style={{
           background: "var(--color-bg)",
-          border: "1px solid rgba(120,94,20,0.15)",
+          border: "1px solid rgba(17,17,17,0.15)",
           fontFamily: mono ? "ui-monospace, SFMono-Regular, monospace" : undefined,
           fontSize: mono ? "12px" : undefined,
         }}

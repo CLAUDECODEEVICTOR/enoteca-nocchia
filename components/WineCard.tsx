@@ -22,7 +22,7 @@ export default function WineCard({ wine, nota }: WineCardProps) {
       <h1
         className="text-4xl md:text-5xl font-bold leading-tight"
         style={{
-          fontFamily: "var(--font-playfair)",
+          fontFamily: "var(--font-titoli)",
           color: "var(--color-gold)",
         }}
       >
@@ -47,8 +47,8 @@ export default function WineCard({ wine, nota }: WineCardProps) {
           <span
             className="px-3 py-1.5 rounded-full text-xs md:text-sm font-medium"
             style={{
-              border: "1px solid rgba(120,94,20,0.3)",
-              background: "rgba(120,94,20,0.08)",
+              border: "1px solid rgba(17,17,17,0.3)",
+              background: "rgba(17,17,17,0.08)",
               color: "var(--color-gold)",
             }}
           >
@@ -60,8 +60,8 @@ export default function WineCard({ wine, nota }: WineCardProps) {
             key={i}
             className="px-3 py-1.5 rounded-full text-xs md:text-sm font-medium"
             style={{
-              border: "1px solid rgba(120,94,20,0.3)",
-              background: "rgba(120,94,20,0.08)",
+              border: "1px solid rgba(17,17,17,0.3)",
+              background: "rgba(17,17,17,0.08)",
               color: "var(--color-gold)",
             }}
           >
@@ -72,8 +72,8 @@ export default function WineCard({ wine, nota }: WineCardProps) {
           <span
             className="px-3 py-1.5 rounded-full text-xs md:text-sm font-medium"
             style={{
-              border: "1px solid rgba(120,94,20,0.3)",
-              background: "rgba(120,94,20,0.08)",
+              border: "1px solid rgba(17,17,17,0.3)",
+              background: "rgba(17,17,17,0.08)",
               color: "var(--color-text)",
             }}
           >
@@ -86,10 +86,10 @@ export default function WineCard({ wine, nota }: WineCardProps) {
     // Descrizione
     <div
       key="descrizione"
-      className="rounded-xl p-4 md:p-6"
+      className="rounded-lg p-4 md:p-6"
       style={{
         background: "var(--color-surface)",
-        border: "1px solid rgba(120,94,20,0.15)",
+        border: "1px solid rgba(17,17,17,0.15)",
       }}
     >
       <div className="flex items-center gap-3 mb-3">
@@ -97,7 +97,7 @@ export default function WineCard({ wine, nota }: WineCardProps) {
         <h3
           className="font-bold uppercase tracking-wider text-sm"
           style={{
-            fontFamily: "var(--font-playfair)",
+            fontFamily: "var(--font-titoli)",
             color: "var(--color-gold)",
           }}
         >
@@ -139,10 +139,10 @@ export default function WineCard({ wine, nota }: WineCardProps) {
     // Temperatura
     <div
       key="temperatura"
-      className="rounded-xl p-4 md:p-6"
+      className="rounded-lg p-4 md:p-6"
       style={{
         background: "var(--color-surface)",
-        border: "1px solid rgba(120,94,20,0.15)",
+        border: "1px solid rgba(17,17,17,0.15)",
       }}
     >
       <div className="flex items-center gap-3 mb-3">
@@ -150,7 +150,7 @@ export default function WineCard({ wine, nota }: WineCardProps) {
         <h3
           className="font-bold uppercase tracking-wider text-sm"
           style={{
-            fontFamily: "var(--font-playfair)",
+            fontFamily: "var(--font-titoli)",
             color: "var(--color-gold)",
           }}
         >

@@ -54,12 +54,12 @@ export default function Inattivita() {
   if (!attiva || !avviso) return null;
   return (
     <div className="fixed inset-x-0 bottom-0 z-[60] p-4 flex justify-center" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}>
-      <div role="alertdialog" aria-live="assertive" className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl flex items-center gap-4" style={{ border: "1px solid #E8E1D6" }}>
+      <div role="alertdialog" aria-live="assertive" className="w-full max-w-md rounded-lg bg-white p-5 shadow-xl flex items-center gap-4" style={{ border: "1px solid #E8E1D6" }}>
         <div className="grow">
-          <p className="text-lg font-medium" style={{ color: "#302D28", fontFamily: "var(--font-playfair)" }}>{t("sommelier.idle_title")}</p>
+          <p className="text-lg font-medium" style={{ color: "#302D28", fontFamily: "var(--font-titoli)" }}>{t("sommelier.idle_title")}</p>
           <p className="text-sm mt-0.5" style={{ color: "#746E65" }}>{t("sommelier.idle_text")}</p>
         </div>
-        <button className="min-h-[48px] px-5 rounded-xl text-base font-medium shrink-0" style={{ background: "var(--color-bordeaux)", color: "#fff" }}>
+        <button className="min-h-[48px] px-5 rounded-lg text-base font-medium shrink-0" style={{ background: "var(--color-bordeaux)", color: "#fff" }}>
           {t("sommelier.idle_stay")}
         </button>
       </div>

@@ -14,7 +14,7 @@ interface Bottiglia {
   causa: string;
 }
 
-const cardStyle = { background: "var(--color-surface)", border: "1px solid rgba(120,94,20,0.2)" };
+const cardStyle = { background: "var(--color-surface)", border: "1px solid rgba(17,17,17,0.2)" };
 
 // The iPad camera gives 4000px photos: 1400px is plenty for the result page and stays well under the upload limit.
 function riduci(file: File, lato = 1400, qualita = 0.85): Promise<string> {
@@ -83,7 +83,7 @@ function FotoMancanti() {
       onClick={() => setCausa(valore)}
       aria-pressed={causa === valore}
       className="min-h-[44px] px-4 rounded-full text-sm"
-      style={causa === valore ? { background: "var(--color-bordeaux)", color: "#fff" } : { border: "1px solid var(--color-border, #E0DCD4)" }}
+      style={causa === valore ? { background: "var(--color-bordeaux)", color: "#fff" } : { border: "1px solid var(--color-border, #E3E0DA)" }}
     >
       {nome} ({n})
     </button>
@@ -130,7 +130,7 @@ function FotoMancanti() {
                   </div>
                   <label
                     className="shrink-0 min-h-[48px] px-4 rounded-xl flex items-center text-sm font-medium cursor-pointer"
-                    style={fatte[b.id] ? { border: "1px solid var(--color-border, #E0DCD4)" } : { background: "var(--color-bordeaux)", color: "#fff" }}
+                    style={fatte[b.id] ? { border: "1px solid var(--color-border, #E3E0DA)" } : { background: "var(--color-bordeaux)", color: "#fff" }}
                   >
                     {inCorso === b.id ? "Salvo…" : fatte[b.id] ? "Rifai" : "Fotografa"}
                     <input type="file" accept="image/*" capture="environment" className="sr-only" disabled={!!inCorso} onChange={(e) => carica(b, e.target.files?.[0])} />

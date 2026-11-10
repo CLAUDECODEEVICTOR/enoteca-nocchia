@@ -90,10 +90,10 @@ export default function FeedbackPanel({ wine, fullResponse, originalPhoto, lang 
   if (state === "done_correct" || state === "done_wrong") {
     return (
       <div
-        className="mt-6 rounded-xl px-5 py-4 text-center text-sm animate-fade-in-1"
+        className="mt-6 rounded-lg px-5 py-4 text-center text-sm animate-fade-in-1"
         style={{
           background: "var(--color-surface)",
-          border: "1px solid rgba(120,94,20,0.25)",
+          border: "1px solid rgba(17,17,17,0.25)",
           color: "var(--color-muted)",
         }}
       >
@@ -104,10 +104,10 @@ export default function FeedbackPanel({ wine, fullResponse, originalPhoto, lang 
 
   return (
     <div
-      className="mt-6 rounded-xl px-5 py-4"
+      className="mt-6 rounded-lg px-5 py-4"
       style={{
         background: "var(--color-surface)",
-        border: "1px solid rgba(120,94,20,0.25)",
+        border: "1px solid rgba(17,17,17,0.25)",
       }}
     >
       <p
@@ -159,7 +159,7 @@ export default function FeedbackPanel({ wine, fullResponse, originalPhoto, lang 
               className="w-full px-3 py-2 rounded-lg text-sm outline-none"
               style={{
                 background: "var(--color-bg)",
-                border: "1px solid rgba(120,94,20,0.3)",
+                border: "1px solid rgba(17,17,17,0.3)",
                 color: "var(--color-text)",
               }}
             />
@@ -177,7 +177,7 @@ export default function FeedbackPanel({ wine, fullResponse, originalPhoto, lang 
               className="w-full px-3 py-2 rounded-lg text-sm outline-none resize-none"
               style={{
                 background: "var(--color-bg)",
-                border: "1px solid rgba(120,94,20,0.3)",
+                border: "1px solid rgba(17,17,17,0.3)",
                 color: "var(--color-text)",
               }}
             />
@@ -189,7 +189,7 @@ export default function FeedbackPanel({ wine, fullResponse, originalPhoto, lang 
               style={{
                 background: "transparent",
                 color: "var(--color-muted)",
-                border: "1px solid rgba(120,94,20,0.25)",
+                border: "1px solid rgba(17,17,17,0.25)",
               }}
             >
               {t.cancel}

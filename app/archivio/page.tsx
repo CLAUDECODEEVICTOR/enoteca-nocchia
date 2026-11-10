@@ -64,7 +64,7 @@ const etichetta = (categoria: string) => {
   const testo = categoria.replace(/-/g, " ");
   return testo.charAt(0).toUpperCase() + testo.slice(1);
 };
-const bordo = "1px solid rgba(120,94,20,0.2)";
+const bordo = "1px solid rgba(17,17,17,0.2)";
 
 function Dato({ nome, valore }: { nome: string; valore: string }) {
   return (
@@ -137,7 +137,7 @@ function SchedaAperta({ id, onClose }: { id: string; onClose: () => void }) {
                       src={`/api/stock/photo?id=${bottiglie[0].id}&lato=${lato}`}
                       alt={`${lato === "retro" ? "Retro" : "Fronte"} della bottiglia`}
                       className="w-32 md:w-44 h-48 md:h-64 rounded-lg object-cover"
-                      style={{ background: "rgba(120,94,20,0.08)" }}
+                      style={{ background: "rgba(17,17,17,0.08)" }}
                     />
                   ))
                 : scheda.bottle_image && (
@@ -251,7 +251,7 @@ function ArchiveContent() {
       {aperta && <SchedaAperta id={aperta} onClose={chiudi} />}
 
       {/* Header */}
-      <div className="sticky top-0 z-10" style={{ background: "var(--color-bg)", borderBottom: "1px solid rgba(120,94,20,0.15)" }}>
+      <div className="sticky top-0 z-10" style={{ background: "var(--color-bg)", borderBottom: "1px solid rgba(17,17,17,0.15)" }}>
         <div className="max-w-4xl mx-auto px-5 md:px-8 py-4 flex items-center gap-4">
           <button
             onClick={() => router.push("/admin")}
@@ -266,7 +266,7 @@ function ArchiveContent() {
           <div className="flex-1 min-w-0">
             <h1
               className="text-xl md:text-2xl font-bold"
-              style={{ fontFamily: "var(--font-playfair)", color: "var(--color-gold)" }}
+              style={{ fontFamily: "var(--font-titoli)", color: "var(--color-gold)" }}
             >
               Archivio schede
             </h1>
@@ -299,7 +299,7 @@ function ArchiveContent() {
                 style={
                   gruppo === f.nome
                     ? { background: "var(--color-bordeaux)", color: "#fff" }
-                    : { border: "1px solid rgba(120,94,20,0.3)", color: "var(--color-text)" }
+                    : { border: "1px solid rgba(17,17,17,0.3)", color: "var(--color-text)" }
                 }
               >
                 {f.nome ?? "Tutte"} ({f.n})
@@ -334,7 +334,7 @@ function ArchiveContent() {
                   loading="lazy"
                   decoding="async"
                   className="shrink-0 w-16 h-20 rounded-lg object-cover"
-                  style={{ background: "rgba(120,94,20,0.06)" }}
+                  style={{ background: "rgba(17,17,17,0.06)" }}
                 />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium" style={{ color: "var(--color-text)" }}>
@@ -342,7 +342,7 @@ function ArchiveContent() {
                   </p>
                   <p className="text-sm" style={{ color: "#c0392b" }}>Scheda da creare: controlla il nome in Magazzino.</p>
                 </div>
-                <button onClick={() => router.push("/magazzino")} className="shrink-0 min-h-[44px] px-3 rounded-lg text-sm" style={{ border: "1px solid rgba(120,94,20,0.3)", color: "var(--color-text)" }}>
+                <button onClick={() => router.push("/magazzino")} className="shrink-0 min-h-[44px] px-3 rounded-lg text-sm" style={{ border: "1px solid rgba(17,17,17,0.3)", color: "var(--color-text)" }}>
                   Magazzino
                 </button>
               </li>
@@ -364,9 +364,9 @@ function ArchiveContent() {
                   <button
                     onClick={() => setAperta(w.id)}
                     className="w-full text-left flex items-stretch gap-4 rounded-xl p-3 md:p-4"
-                    style={{ background: "var(--color-surface)", border: "1px solid rgba(120,94,20,0.15)" }}
+                    style={{ background: "var(--color-surface)", border: "1px solid rgba(17,17,17,0.15)" }}
                   >
-                    <span className="shrink-0 w-16 h-20 md:w-20 md:h-24 rounded-lg overflow-hidden block" style={{ background: "rgba(120,94,20,0.06)" }}>
+                    <span className="shrink-0 w-16 h-20 md:w-20 md:h-24 rounded-lg overflow-hidden block" style={{ background: "rgba(17,17,17,0.06)" }}>
                       {(w.foto_id || w.bottle_image) && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -383,7 +383,7 @@ function ArchiveContent() {
                     </span>
                     <span className="flex-1 min-w-0 flex flex-col justify-between">
                       <span>
-                        <span className="block text-base md:text-lg font-bold leading-tight" style={{ color: "var(--color-gold)", fontFamily: "var(--font-playfair)" }}>
+                        <span className="block text-base md:text-lg font-bold leading-tight" style={{ color: "var(--color-gold)", fontFamily: "var(--font-titoli)" }}>
                           {w.nome_vino}
                         </span>
                         <span className="block text-xs md:text-sm mt-1 truncate" style={{ color: "var(--color-muted)" }}>
@@ -409,7 +409,7 @@ function ArchiveContent() {
               <button
                 onClick={() => setMostrate((n) => n + A_PAGINA)}
                 className="w-full min-h-[52px] mt-4 rounded-xl font-medium"
-                style={{ border: "1px solid rgba(120,94,20,0.3)", color: "var(--color-text)" }}
+                style={{ border: "1px solid rgba(17,17,17,0.3)", color: "var(--color-text)" }}
               >
                 Mostra altre ({filtered.length - mostrate})
               </button>

@@ -55,7 +55,7 @@ function shrink(base64: string, maxSize: number, quality: number): Promise<strin
 
 const fieldStyle = {
   background: "var(--color-bg)",
-  border: "1px solid rgba(120,94,20,0.3)",
+  border: "1px solid rgba(17,17,17,0.3)",
   color: "var(--color-text)",
 };
 
@@ -135,7 +135,7 @@ function Row({
       className="rounded-xl p-3 flex gap-3"
       style={{
         background: "var(--color-surface)",
-        border: warn ? "2px solid #c0392b" : "1px solid rgba(120,94,20,0.2)",
+        border: warn ? "2px solid #c0392b" : "1px solid rgba(17,17,17,0.2)",
       }}
     >
       {fotoAperta && <FotoGrande id={item.id} lato={fotoAperta} onLato={setFotoAperta} onClose={() => setFotoAperta(null)} />}
@@ -151,7 +151,7 @@ function Row({
             decoding="async"
             onClick={() => setFotoAperta(lato)}
             className="w-24 md:w-40 h-36 md:h-56 rounded-lg object-cover cursor-pointer"
-            style={{ background: "rgba(120,94,20,0.08)" }}
+            style={{ background: "rgba(17,17,17,0.08)" }}
           />
         ))}
       </div>
@@ -171,13 +171,13 @@ function Row({
           <p className="text-sm font-medium" style={{ color: "#c0392b" }}>Da controllare: {item.dubbi || "confronta con la foto"}</p>
         )}
         {twin && (
-          <div className="rounded-lg p-2 text-sm" style={{ background: "rgba(120,94,20,0.1)", color: "var(--color-text)" }}>
+          <div className="rounded-lg p-2 text-sm" style={{ background: "rgba(17,17,17,0.1)", color: "var(--color-text)" }}>
             Già presente: {twin.nome_vino} {twin.annata} ({twin.quantita} pz)
             <div className="flex gap-2 mt-2">
               <button onClick={() => action({ mergeInto: twin.id })} className="flex-1 min-h-[44px] rounded-lg font-medium text-white" style={{ background: "var(--color-bordeaux)" }}>
                 Somma quantità
               </button>
-              <button onClick={() => action({ keepSeparate: true })} className="flex-1 min-h-[44px] rounded-lg" style={{ border: "1px solid rgba(120,94,20,0.3)" }}>
+              <button onClick={() => action({ keepSeparate: true })} className="flex-1 min-h-[44px] rounded-lg" style={{ border: "1px solid rgba(17,17,17,0.3)" }}>
                 Tieni separata
               </button>
             </div>
@@ -429,12 +429,12 @@ function Magazzino() {
 
       {showList && (
         <div className="fixed inset-0 z-40 overflow-y-auto" style={{ background: "var(--color-bg)", paddingTop: "env(safe-area-inset-top)" }}>
-          <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 p-3" style={{ background: "var(--color-bg)", borderBottom: "1px solid rgba(120,94,20,0.15)" }}>
+          <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 p-3" style={{ background: "var(--color-bg)", borderBottom: "1px solid rgba(17,17,17,0.15)" }}>
             <button onClick={() => setShowList(false)} className="min-h-[44px] px-4 rounded-lg font-medium text-white" style={{ background: "var(--color-bordeaux)" }}>
               Torna agli scatti
             </button>
             <span className="text-sm" style={{ color: "var(--color-muted)" }}>{visibili.length} prodotti, {totale} bottiglie</span>
-            <a href="/api/stock/export" download className="min-h-[44px] px-4 rounded-lg ml-auto flex items-center text-sm" style={{ border: "1px solid rgba(120,94,20,0.3)", color: "var(--color-text)" }}>
+            <a href="/api/stock/export" download className="min-h-[44px] px-4 rounded-lg ml-auto flex items-center text-sm" style={{ border: "1px solid rgba(17,17,17,0.3)", color: "var(--color-text)" }}>
               Esporta CSV
             </a>
             <div className="w-full flex flex-wrap gap-2">
@@ -451,7 +451,7 @@ function Magazzino() {
                   style={
                     !cestino && !soloAnnata && filtro === nome
                       ? { background: "var(--color-bordeaux)", color: "#fff" }
-                      : { border: "1px solid rgba(120,94,20,0.3)", color: "var(--color-text)" }
+                      : { border: "1px solid rgba(17,17,17,0.3)", color: "var(--color-text)" }
                   }
                 >
                   {nome ?? "Tutti"} ({nome ? items.filter((i) => i.operatore === nome).length : items.length})
@@ -472,7 +472,7 @@ function Magazzino() {
                 onClick={apriCestino}
                 aria-pressed={!!cestino}
                 className="min-h-[44px] px-3 rounded-lg text-sm"
-                style={cestino ? { background: "var(--color-bordeaux)", color: "#fff" } : { border: "1px solid rgba(120,94,20,0.3)", color: "var(--color-text)" }}
+                style={cestino ? { background: "var(--color-bordeaux)", color: "#fff" } : { border: "1px solid rgba(17,17,17,0.3)", color: "var(--color-text)" }}
               >
                 Cestino{cestino ? ` (${cestino.length})` : ""}
               </button>
@@ -481,7 +481,7 @@ function Magazzino() {
           {cestino && (
             <ul className="max-w-4xl mx-auto p-3 grid gap-3">
               {cestino.map((item) => (
-                <li key={item.id} className="rounded-xl p-3 flex items-center gap-3" style={{ background: "var(--color-surface)", border: "1px solid rgba(120,94,20,0.2)" }}>
+                <li key={item.id} className="rounded-xl p-3 flex items-center gap-3" style={{ background: "var(--color-surface)", border: "1px solid rgba(17,17,17,0.2)" }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={`/api/stock/photo?id=${item.id}`} alt="" loading="lazy" decoding="async" className="w-16 h-20 rounded-lg object-cover shrink-0" />
                   <div className="flex-1 min-w-0">

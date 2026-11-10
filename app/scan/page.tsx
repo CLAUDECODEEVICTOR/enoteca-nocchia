@@ -210,7 +210,7 @@ export default function ScanPage() {
           <img
             src={`data:image/jpeg;base64,${capturedImage}`}
             alt="Preview"
-            className="max-w-full max-h-[65vh] md:max-h-[70vh] rounded-xl object-contain"
+            className="max-w-full max-h-[65vh] md:max-h-[70vh] rounded-lg object-contain"
             style={{ border: "1px solid var(--color-border)" }}
           />
         </div>
@@ -219,7 +219,7 @@ export default function ScanPage() {
         <div className="flex gap-4 justify-center px-6 md:px-12 pb-8 max-w-lg mx-auto w-full">
           <button
             onClick={handleRetake}
-            className="flex-1 min-h-[52px] py-4 rounded-xl text-base md:text-lg font-medium transition-colors"
+            className="flex-1 min-h-[52px] py-4 rounded-lg text-base md:text-lg font-medium transition-colors"
             style={{
               border: "1px solid var(--color-border)",
               color: "var(--color-text)",
@@ -230,7 +230,7 @@ export default function ScanPage() {
           </button>
           <button
             onClick={handleAnalyze}
-            className="flex-1 min-h-[52px] py-4 rounded-xl text-base md:text-lg font-medium transition-colors"
+            className="flex-1 min-h-[52px] py-4 rounded-lg text-base md:text-lg font-medium transition-colors"
             style={{
               background: "var(--color-bordeaux)",
               color: "#FFFFFF",
@@ -256,7 +256,7 @@ export default function ScanPage() {
             <button
               key={b.id}
               onClick={() => handleScegli(b.id)}
-              className="w-full flex items-center gap-4 p-3 rounded-xl text-left min-h-[88px]"
+              className="w-full flex items-center gap-4 p-3 rounded-lg text-left min-h-[88px]"
               style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
             >
               <div className="w-14 h-20 shrink-0 flex items-center justify-center">
@@ -272,7 +272,7 @@ export default function ScanPage() {
           ))}
           <button
             onClick={handleSalta}
-            className="w-full min-h-[52px] rounded-xl text-base font-medium mt-2"
+            className="w-full min-h-[52px] rounded-lg text-base font-medium mt-2"
             style={{ border: "1px solid var(--color-border)", color: "var(--color-text)", background: "transparent" }}
           >
             {t("scan.retro_none")}
@@ -291,12 +291,12 @@ export default function ScanPage() {
       <>
         <LanguageToggle />
         <div className="fixed inset-x-0 z-50 flex justify-center px-4" style={{ top: "calc(env(safe-area-inset-top, 0px) + 72px)" }}>
-          <div className="max-w-md w-full rounded-xl px-5 py-4 text-center" style={vetro}>
+          <div className="max-w-md w-full rounded-lg px-5 py-4 text-center" style={vetro}>
             <p className="text-base md:text-lg font-medium">{t("scan.retro_title")}</p>
             <p className="text-sm md:text-base mt-1" style={{ opacity: 0.9 }}>{t("scan.retro_text")}</p>
             <button
               onClick={() => (retro.bottiglie.length ? setElenco(true) : handleSalta())}
-              className="mt-3 min-h-[48px] px-6 rounded-xl text-base font-medium"
+              className="mt-3 min-h-[48px] px-6 rounded-lg text-base font-medium"
               style={{ border: "1px solid rgba(255,255,255,0.6)", color: "#FFFFFF", background: "rgba(255,255,255,0.08)" }}
             >
               {retro.bottiglie.length ? t("scan.retro_list") : t("scan.retro_skip")}

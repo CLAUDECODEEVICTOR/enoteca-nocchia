@@ -46,7 +46,7 @@ export default function LoadingWine() {
       <h2
         className="text-2xl md:text-3xl font-bold text-center px-6"
         style={{
-          fontFamily: "var(--font-playfair)",
+          fontFamily: "var(--font-titoli)",
           color: "var(--color-gold)",
         }}
       >
@@ -57,14 +57,14 @@ export default function LoadingWine() {
         <div
           className="absolute inset-0 rounded-full animate-spin"
           style={{
-            border: "3px solid rgba(120,94,20,0.2)",
+            border: "3px solid rgba(17,17,17,0.2)",
             borderTopColor: "var(--color-gold)",
           }}
         />
       </div>
 
       {/* Progress bar */}
-      <div className="w-48 md:w-64 h-1 rounded-full overflow-hidden" style={{ background: "rgba(120,94,20,0.15)" }}>
+      <div className="w-48 md:w-64 h-1 rounded-full overflow-hidden" style={{ background: "rgba(17,17,17,0.15)" }}>
         <div
           className="h-full rounded-full transition-all duration-300 ease-out"
           style={{
@@ -78,7 +78,7 @@ export default function LoadingWine() {
         className="text-lg md:text-xl italic transition-opacity duration-300 px-6 text-center"
         style={{
           color: "var(--color-muted)",
-          fontFamily: "var(--font-playfair)",
+          fontFamily: "var(--font-titoli)",
           opacity: fade ? 1 : 0,
         }}
       >

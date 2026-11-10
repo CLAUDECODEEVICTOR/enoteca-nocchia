@@ -66,8 +66,8 @@ const CAMPI: { campo: string; nome: string; elenco?: boolean; lungo?: boolean }[
   { campo: "descrizione", nome: "Descrizione", lungo: true },
 ];
 
-const cardStyle = { background: "var(--color-surface)", border: "1px solid rgba(120,94,20,0.2)" };
-const inputStyle = { background: "#fff", border: "1px solid var(--color-border, #E0DCD4)", color: "var(--color-text)" };
+const cardStyle = { background: "var(--color-surface)", border: "1px solid rgba(17,17,17,0.2)" };
+const inputStyle = { background: "#fff", border: "1px solid var(--color-border, #E3E0DA)", color: "var(--color-text)" };
 
 const filtroDi = (v: Voce): Filtro => (v.verificata_il ? "fatte" : v.errori > 0 ? "errori" : "da");
 const dataBreve = (s: string) => new Date(s).toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -87,7 +87,7 @@ function Esito({ c }: { c?: Controllo }) {
     errato: [c.gravita === "grave" ? "da correggere, grave" : "da correggere", "#F6E3E1", "#3E6B2A"],
     mancante: ["manca nella scheda", "#EEEEEE", "#555555"],
     non_verificabile: ["nessuna fonte trovata", "#EEEEEE", "#555555"],
-    editoriale: ["consiglio, non un dato", "#F3ECDD", "#785E14"],
+    editoriale: ["consiglio, non un dato", "#F3ECDD", "#111111"],
   };
   const [testo, bg, fg] = tipi[c.esito] || [c.esito, "#EEEEEE", "#555555"];
   return (
@@ -162,7 +162,7 @@ function Dettaglio({ id, chi, setChi, onFatto, onIndietro }: {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={src} alt={`${scheda.nome_vino}, ${testo}`} className="h-36 w-auto rounded-lg object-contain bg-white" />
       ) : (
-        <div className="h-36 w-24 rounded-lg flex items-center justify-center text-xs" style={{ border: "1px dashed var(--color-border, #E0DCD4)", color: "var(--color-muted)" }}>
+        <div className="h-36 w-24 rounded-lg flex items-center justify-center text-xs" style={{ border: "1px dashed var(--color-border, #E3E0DA)", color: "var(--color-muted)" }}>
           nessuna foto
         </div>
       )}
@@ -176,7 +176,7 @@ function Dettaglio({ id, chi, setChi, onFatto, onIndietro }: {
         ← Elenco
       </button>
       <div>
-        <h2 className="text-2xl font-medium" style={{ fontFamily: "var(--font-playfair)", color: "var(--color-bordeaux)" }}>{scheda.nome_vino}</h2>
+        <h2 className="text-2xl font-medium" style={{ fontFamily: "var(--font-titoli)", color: "var(--color-bordeaux)" }}>{scheda.nome_vino}</h2>
         <p className="text-sm mt-1" style={{ color: "var(--color-muted)" }}>
           {[scheda.produttore, scheda.annata, formati].filter(Boolean).join(" · ")}
         </p>
@@ -198,7 +198,7 @@ function Dettaglio({ id, chi, setChi, onFatto, onIndietro }: {
           const proposta = c?.esito === "errato" && c.valore_corretto ? c.valore_corretto : "";
           const fatto = scheda.verificati[campo]?.da;
           return (
-            <div key={campo} className="rounded-xl p-3 grid gap-2 bg-white" style={{ border: "1px solid var(--color-border, #E0DCD4)" }}>
+            <div key={campo} className="rounded-xl p-3 grid gap-2 bg-white" style={{ border: "1px solid var(--color-border, #E3E0DA)" }}>
               <div className="flex justify-between gap-3 items-baseline">
                 <span className="font-medium">{nome}</span>
                 {fatto && <span className="text-xs" style={{ color: "#2F5D2A" }}>controllato da {fatto}</span>}
@@ -234,7 +234,7 @@ function Dettaglio({ id, chi, setChi, onFatto, onIndietro }: {
             </div>
           );
         })}
-        <div className="rounded-xl p-3 grid gap-2 bg-white" style={{ border: "1px solid var(--color-border, #E0DCD4)" }}>
+        <div className="rounded-xl p-3 grid gap-2 bg-white" style={{ border: "1px solid var(--color-border, #E3E0DA)" }}>
           <span className="font-medium">Formato</span>
           <div className="grid md:grid-cols-2 gap-3">
             <div>
@@ -258,14 +258,14 @@ function Dettaglio({ id, chi, setChi, onFatto, onIndietro }: {
             onClick={() => setChi(n)}
             aria-pressed={chi === n}
             className="min-h-[44px] px-4 rounded-full text-sm"
-            style={chi === n ? { background: "var(--color-gold)", color: "#fff" } : { border: "1px solid var(--color-border, #E0DCD4)" }}
+            style={chi === n ? { background: "var(--color-gold)", color: "#fff" } : { border: "1px solid var(--color-border, #E3E0DA)" }}
           >
             {n}
           </button>
         ))}
         <div className="ml-auto flex gap-2">
           {scheda.verificata_il && (
-            <button onClick={() => salva(true)} disabled={!chi || stato === "salva"} className="min-h-[52px] px-4 rounded-xl text-sm disabled:opacity-50" style={{ border: "1px solid var(--color-border, #E0DCD4)" }}>
+            <button onClick={() => salva(true)} disabled={!chi || stato === "salva"} className="min-h-[52px] px-4 rounded-xl text-sm disabled:opacity-50" style={{ border: "1px solid var(--color-border, #E3E0DA)" }}>
               Riapri
             </button>
           )}
@@ -340,7 +340,7 @@ function Verifica() {
       onClick={() => setFiltro(f)}
       aria-pressed={filtro === f}
       className="min-h-[44px] px-4 rounded-full text-sm"
-      style={filtro === f ? { background: "var(--color-bordeaux)", color: "#fff" } : { border: "1px solid var(--color-border, #E0DCD4)" }}
+      style={filtro === f ? { background: "var(--color-bordeaux)", color: "#fff" } : { border: "1px solid var(--color-border, #E3E0DA)" }}
     >
       {nome} ({conta[f]})
     </button>

@@ -1,22 +1,24 @@
 @import "tailwindcss";
 
 :root {
+  /* Taken from the Nocchia Wine Bar site, built on the logo: white and ink, stone for the
+     panels, one action colour (the laurel green), no gold. --color-gold and --color-bordeaux
+     keep their old names so every page follows: gold is now ink, bordeaux is the laurel. */
   --color-bg: #FFFFFF;
-  --color-surface: #F5F2EB;
-  --color-border: #E0DCD4;
-  --color-gold: #785E14;
+  --color-surface: #F4F2ED;
+  --color-border: #E3E0DA;
+  --color-gold: #111111;
   --color-bordeaux: #3E6B2A;
-  --color-text: #1A1A1A;
-  --color-muted: #6B6860;
-  /* --font-playfair and --font-dm-sans come from next/font on <html>: redefining them here
-     as var() of themselves made a cycle, and every serif title fell back to the sans font. */
+  --color-text: #111111;
+  --color-muted: #66625D;
+  /* --font-titoli and --font-testo come from next/font on <html>. */
 }
 
 @theme inline {
   --color-background: var(--color-bg);
   --color-foreground: var(--color-text);
-  --font-sans: var(--font-dm-sans);
-  --font-serif: var(--font-playfair);
+  --font-sans: var(--font-testo);
+  --font-serif: var(--font-titoli);
 }
 
 /* A kiosk page: no double-tap zoom (the pinch is stopped in BloccaZoom). */
@@ -27,6 +29,14 @@ html {
 body {
   background: var(--color-bg);
   color: var(--color-text);
+  font-family: var(--font-testo), system-ui, sans-serif;
+  /* Gilda has a single weight: never let the browser fake a bold. */
+  font-synthesis: none;
+  font-variant-numeric: lining-nums;
+}
+
+h1, h2, h3 {
+  font-weight: 400;
 }
 
 /* Animazioni staggered fade-in */

@@ -94,7 +94,7 @@ export default function Gate({ scope, title, subtitle, showBackLink, children }:
       >
         <h1
           className="text-3xl md:text-4xl font-bold mb-2"
-          style={{ fontFamily: "var(--font-playfair)", color: "var(--color-gold)" }}
+          style={{ fontFamily: "var(--font-titoli)", color: "var(--color-gold)" }}
         >
           {title}
         </h1>
@@ -112,7 +112,7 @@ export default function Gate({ scope, title, subtitle, showBackLink, children }:
     >
       <h1
         className="text-3xl md:text-4xl font-bold mb-2"
-        style={{ fontFamily: "var(--font-playfair)", color: "var(--color-gold)" }}
+        style={{ fontFamily: "var(--font-titoli)", color: "var(--color-gold)" }}
       >
         {title}
       </h1>
@@ -134,9 +134,9 @@ export default function Gate({ scope, title, subtitle, showBackLink, children }:
           className="w-full text-center text-2xl tracking-[0.5em] py-3 rounded-xl outline-none transition-colors"
           style={{
             background: "var(--color-surface)",
-            border: errorMessage ? "2px solid #c0392b" : "1px solid rgba(120,94,20,0.3)",
+            border: errorMessage ? "2px solid #c0392b" : "1px solid rgba(17,17,17,0.3)",
             color: "var(--color-text)",
-            fontFamily: "var(--font-dm-sans)",
+            fontFamily: "var(--font-testo)",
           }}
           placeholder="····"
           autoComplete="off"
